@@ -15,22 +15,13 @@ if ( $EVAL_ERROR ) {
    plan( skip_all => $msg );
 }
 
-Test::Spelling::add_stopwords(qw(   ActionDispatch
-                                    Walde
+Test::Spelling::add_stopwords(qw(   JSON
                                     CPAN
                                     Bamber
-                                    Cees
-                                    Hek
                                     github
                                     AnnoCPAN
                                     RT
                                     API
-                                    SiteSuite
-                                    crypted
-                                    SHA
-                                    CRC
-                                    DBD
-                                    DBH
                                     SQL
                                     DBI
                                     username

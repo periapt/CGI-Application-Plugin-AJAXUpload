@@ -12,8 +12,10 @@ my $builder = Module::Build->new(
     },
     requires => {
         'version'    => 0,
+        'Exporter'   => 0,
     },
     create_makefile_pl => 'traditional',
+    create_readme=>0,
     add_to_cleanup      => [ 'CGI-Application-Plugin-AJAXUpload-*' ],
 );
 

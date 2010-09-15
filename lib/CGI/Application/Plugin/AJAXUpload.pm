@@ -3,14 +3,15 @@ package CGI::Application::Plugin::AJAXUpload;
 use warnings;
 use strict;
 use Carp;
+use base qw(Exporter);
+use vars qw(@EXPORT);
+
+@EXPORT = qw(
+    ajax_upload_setup
+    ajax_upload_rm
+);
 
 use version; our $VERSION = qv('0.0.1');
-
-# Other recommended modules (uncomment to use):
-#  use IO::Prompt;
-#  use Perl6::Export;
-#  use Perl6::Slurp;
-#  use Perl6::Say;
 
 
 # Module implementation here
@@ -21,13 +22,11 @@ __END__
 
 =head1 NAME
 
-CGI::Application::Plugin::AJAXUpload - [One line description of module's purpose here]
-
+CGI::Application::Plugin::AJAXUpload - Run mode to handle a file upload and return a JSON response
 
 =head1 VERSION
 
 This document describes CGI::Application::Plugin::AJAXUpload version 0.0.1
-
 
 =head1 SYNOPSIS
 
