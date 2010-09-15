@@ -33,6 +33,22 @@ sub ajax_upload_setup {
     croak "$full_upload_dir is not writeable" if not -w $full_upload_dir;
 
     my $dfv_profile = $args{dfv_profile};
+    my $filename_gen = $args{filename_gen};
+    my $run_mode = 'ajax_upload_rm';
+    if (exists $args{run_mode}) {
+        $run_mode = $args{run_mode};
+    }
+
+    $self->run_modes(
+        $run_mode => sub {
+            my $c = shift;
+            return $c->ajax_upload_rm($httpdocs_dir,
+                                        $upload_subdir,
+                                        $dfv_profile,
+                                        $filename_gen
+            );
+        }
+    );
 
     return;
 }
@@ -106,6 +122,19 @@ be written to. It must be writeable. It defaults to '/img/uploads'.
 
 This is L<Data::FormValidator> profile. If it is not set the data will be taken on trust.
 
+=item filename_gen
+
+This is a callback method that will be given in order: the CGI application
+object  and the file name as given by the upload data. It must return the 
+actual name that the file name is to be stored under. If not set the given
+name will be used and any existing files of that name might be overwritten.
+This method can be used also to do additional housekeeping.
+
+=item run_mode
+
+This is the name of the run mode that will handle this upload. It defaults to
+'ajax_upload_rm'.
+
 =back
 
 =head2 ajax_upload_rm
@@ -130,15 +159,8 @@ The C<upload_subdir> parameter must be a writeable directory.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-=for author to fill in:
-    A full explanation of any configuration system(s) used by the
-    module, including the names and locations of any configuration
-    files, and the meaning of any environment variables or properties
-    that can be set. These descriptions must also include details of any
-    configuration language used.
-  
-CGI::Application::Plugin::AJAXUpload requires no configuration files or environment variables.
-
+CGI::Application::Plugin::AJAXUpload requires no configuration files or environment variables. However the client side code and the URL to run mode dispatching
+is not supplied.
 
 =head1 DEPENDENCIES
 
