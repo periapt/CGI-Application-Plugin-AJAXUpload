@@ -10,6 +10,7 @@ my $builder = Module::Build->new(
     build_requires => {
         'Test::More' => '0.96',
         'File::Temp' => 0,
+        'Test::NoWarnings' => 0,
     },
     requires => {
         'version'    => 0,
@@ -17,7 +18,7 @@ my $builder = Module::Build->new(
         'CGI::Application' => 0,
     },
     create_makefile_pl => 'traditional',
-    create_readme=>0,
+    create_readme=>1,
     add_to_cleanup      => [ 'CGI-Application-Plugin-AJAXUpload-*' ],
 );
 
