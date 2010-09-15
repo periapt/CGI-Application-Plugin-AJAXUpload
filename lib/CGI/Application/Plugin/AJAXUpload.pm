@@ -40,10 +40,21 @@ This document describes CGI::Application::Plugin::AJAXUpload version 0.0.1
   
 =head1 DESCRIPTION
 
-=for author to fill in:
-    Write a full description of the module and its features here.
-    Use subsections (=head2, =head3) as appropriate.
+This module provides a customizable run mode that handles a file upload
+and responds with a JSON message like the following:
 
+    {status: 'UPLOADED', image_url: '/img/uploads/666.png'}
+
+or on failure
+
+    {status: 'The image was too big.'}
+
+This is specifically intended to provide a L<CGI::Application> based back
+end for L<AllMyBrain.com|http://allmybrain.com>'s 
+L<image upload extension|http://allmybrain.com/2007/10/16/an-image-upload-extension-for-yui-rich-text-editor> to the
+L<YUI rich text editor|http://developer.yahoo.com/yui/editor>. However as far as
+I can see it could be used as a back end for any L<CGI::Application> website that uploads files behind the scenes using AJAX. In any case this module does NOT
+provide any of that client side code and you must also map the run mode onto the URL used by client-side code.
 
 =head1 INTERFACE 
 
