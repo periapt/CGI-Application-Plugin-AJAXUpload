@@ -16,6 +16,15 @@ use version; our $VERSION = qv('0.0.1');
 # Module implementation here
 
 sub ajax_upload_setup {
+    my $self = shift;
+
+    my %args = @_;
+
+    croak "no httpdocs_dir specified" if not exists $args{httpdocs_dir};
+    my $httpdocs_dir = $args{httpdocs_dir};
+    croak "$httpdocs_dir is not a directory" if not -d $httpdocs_dir;
+
+    return;
 }
 
 1; # Magic true value required at end of module
@@ -69,25 +78,27 @@ and allows callbacks to modify exactly how the file is stored.
 
 =head2 ajax_upload_setup
 
+This method takes a number of named parameters
+
+=over
+
+=item httpdocs_dir
+
+This is the physical path of the directory storing the static files.
+If it does not exist an error will be thrown.
+
 =head2 ajax_upload_rm
 
 =head1 DIAGNOSTICS
 
-=for author to fill in:
-    List every single error and warning message that the module can
-    generate (even the ones that will "never happen"), with a full
-    explanation of each problem, one or more likely causes, and any
-    suggested remedies.
+=item C<< no httpdocs_dir specified >>
 
-=over
+A C<httpdocs_dir> parameter must be specified in the C<ajax_upload_setup>
+method.
 
-=item C<< Error message here, perhaps with %s placeholders >>
+=item C<< %s is not a directory >>
 
-[Description of error here]
-
-=item C<< Another error message here >>
-
-[Description of error here]
+The C<httpdocs_dir> parameter must be a directory.
 
 [Et cetera, et cetera]
 

@@ -16,7 +16,7 @@ sub setup {
         httpdocs_dir => $httpdocs_dir,
     );
 
-    $self->ajax_upload_setup(%ajax_uplod_args);
+    $self->ajax_upload_setup(%ajax_upload_args);
 
     return;
 }
