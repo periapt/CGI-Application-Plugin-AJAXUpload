@@ -13,9 +13,10 @@ use vars qw(@EXPORT);
 
 use version; our $VERSION = qv('0.0.1');
 
-
 # Module implementation here
 
+sub ajax_upload_setup {
+}
 
 1; # Magic true value required at end of module
 __END__

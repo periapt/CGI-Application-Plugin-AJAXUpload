@@ -8,11 +8,13 @@ my $builder = Module::Build->new(
     dist_author         => 'Nicholas Bamber <nicholas@periapt.co.uk>',
     dist_version_from   => 'lib/CGI/Application/Plugin/AJAXUpload.pm',
     build_requires => {
-        'Test::More' => 0,
+        'Test::More' => '0.96',
+        'File::Temp' => 0,
     },
     requires => {
         'version'    => 0,
         'Exporter'   => 0,
+        'CGI::Application' => 0,
     },
     create_makefile_pl => 'traditional',
     create_readme=>0,
