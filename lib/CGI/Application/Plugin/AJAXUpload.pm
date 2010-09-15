@@ -24,6 +24,16 @@ sub ajax_upload_setup {
     my $httpdocs_dir = $args{httpdocs_dir};
     croak "$httpdocs_dir is not a directory" if not -d $httpdocs_dir;
 
+    my $upload_subdir = '/img/uploads';
+    if (exists $args{upload_subdir}) {
+        $upload_subdir = $args{upload_subdir};
+    }
+    my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
+    croak "$full_upload_dir is not a directory" if not -d $full_upload_dir;
+    croak "$full_upload_dir is not writeable" if not -w $full_upload_dir;
+
+    my $dfv_profile = $args{dfv_profile};
+
     return;
 }
 
@@ -87,6 +97,17 @@ This method takes a number of named parameters
 This is the physical path of the directory storing the static files.
 If it does not exist an error will be thrown.
 
+=item upload_subdir
+
+This is the sub-directory of C<httpdocs_dir> where the files will actually
+be written to. It must be writeable. It defaults to '/img/uploads'.
+
+=item dfv_profile
+
+This is L<Data::FormValidator> profile. If it is not set the data will be taken on trust.
+
+=back
+
 =head2 ajax_upload_rm
 
 =head1 DIAGNOSTICS
@@ -100,7 +121,9 @@ method.
 
 The C<httpdocs_dir> parameter must be a directory.
 
-[Et cetera, et cetera]
+=item C<< %s is not writeable >>
+
+The C<upload_subdir> parameter must be a writeable directory.
 
 =back
 

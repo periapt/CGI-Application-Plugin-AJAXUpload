@@ -11,6 +11,8 @@ sub setup {
 
     $self->{_TESTWEBAPP_TEMPDIR} = File::Temp->newdir();
     my $httpdocs_dir = $self->{_TESTWEBAPP_TEMPDIR}->dirname;
+    mkdir "${httpdocs_dir}/img";
+    mkdir "${httpdocs_dir}/img/uploads";
 
     my %ajax_upload_args = (
         httpdocs_dir => $httpdocs_dir,

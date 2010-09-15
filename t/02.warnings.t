@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Carp;
-use Test::More tests => 4;
+use Test::More tests => 6;
 use Test::NoWarnings;
 use Test::Exception;
 use lib qw(t/lib);
@@ -46,6 +46,34 @@ subtest 'httpdocs_dir does not exist' => sub{
             httpdocs_dir => $actually_a_file->filename,
         );
     } qr/is not a directory/, 'not actually a directory';
+};
+
+subtest 'upload_subdir does not exist' => sub{
+    plan tests => 2;
+    my $app = TestWebAppBasic->new;
+    isa_ok($app, 'CGI::Application');
+    my $tmpdir = File::Temp->newdir;
+    throws_ok {
+        $app->ajax_upload_setup(
+            httpdocs_dir => $tmpdir->dirname,
+        );
+    } qr/is not a directory/, 'not actually a directory';
+};
+
+subtest 'upload_subdir is not writeable' => sub{
+    plan tests => 2;
+    my $app = TestWebAppBasic->new;
+    isa_ok($app, 'CGI::Application');
+    my $tmpdir = File::Temp->newdir;
+    my $tmpdir_name = $tmpdir->dirname;
+    mkdir "$tmpdir_name/img";
+    mkdir "$tmpdir_name/img/uploads";
+    chmod 300, "$tmpdir_name/img/uploads";
+    throws_ok {
+        $app->ajax_upload_setup(
+            httpdocs_dir => $tmpdir->dirname,
+        );
+    } qr/is not writeable/, 'uploads not writeable';
 };
 
 
