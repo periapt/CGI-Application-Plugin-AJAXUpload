@@ -139,6 +139,41 @@ This is the name of the run mode that will handle this upload. It defaults to
 
 =head2 ajax_upload_rm
 
+This forms the implementation of the run mode. It takes the following actions:
+
+=over 
+
+=item --
+
+It will look for a CGI parameter called C<file>.
+
+=item --
+
+It will get the filename and data associated with the upload and 
+pass the data through the L<Data::FormValidator> if a profile is 
+supplied.
+
+=item --
+
+If it fails the L<Data::FormValidator> test a failed message will be passed
+back to the caller.
+
+=item --
+
+The filename will be passed through the file name generator.
+
+=item --
+
+The data will then be copied to the given file, its path being the 
+combination of the C<httpdocs_dir> parameter, the
+C<upload_subdir> and the generated file name.
+
+=item - 
+
+The successful JSON message will be passed back to the client.
+
+=back
+
 =head1 DIAGNOSTICS
 
 =item C<< no httpdocs_dir specified >>
