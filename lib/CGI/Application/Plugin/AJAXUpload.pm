@@ -30,14 +30,19 @@ This document describes CGI::Application::Plugin::AJAXUpload version 0.0.1
 
 =head1 SYNOPSIS
 
+    use MyWebApp;
     use CGI::Application::Plugin::AJAXUpload;
 
-=for author to fill in:
-    Brief code example(s) here showing commonest usage(s).
-    This section will be as far as many users bother reading
-    so make it as educational and exeplary as possible.
-  
-  
+    sub setup {
+        my $c = shift;
+        $c->ajax_upload_setup(
+            run_mode=>'file_upload',
+            httpdocs_dir=>'/var/www/vhosts/mywebapp/httpdocs',
+            upload_subdir=>'/img/uploads',
+        );
+        return;
+    }
+
 =head1 DESCRIPTION
 
 This module provides a customizable run mode that handles a file upload
@@ -56,14 +61,14 @@ L<YUI rich text editor|http://developer.yahoo.com/yui/editor>. However as far as
 I can see it could be used as a back end for any L<CGI::Application> website that uploads files behind the scenes using AJAX. In any case this module does NOT
 provide any of that client side code and you must also map the run mode onto the URL used by client-side code.
 
+It can also hand validation of the image to L<Data::FormValidator> style objects
+and allows callbacks to modify exactly how the file is stored.
+
 =head1 INTERFACE 
 
-=for author to fill in:
-    Write a separate section listing the public components of the modules
-    interface. These normally consist of either subroutines that may be
-    exported, or methods that may be called on objects belonging to the
-    classes provided by the module.
+=head2 ajax_upload_setup
 
+=head2 ajax_upload_rm
 
 =head1 DIAGNOSTICS
 
