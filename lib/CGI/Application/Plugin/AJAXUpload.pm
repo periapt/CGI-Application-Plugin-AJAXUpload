@@ -7,6 +7,7 @@ use base qw(Exporter);
 use vars qw(@EXPORT);
 
 @EXPORT = qw(
+    ajax_upload_httpdocs
     ajax_upload_setup
     ajax_upload_rm
 );
@@ -71,9 +72,10 @@ This document describes CGI::Application::Plugin::AJAXUpload version 0.0.1
 
     sub setup {
         my $c = shift;
+        $c->ajax_upload_httpdocs('/var/www/vhosts/mywebapp/httpdocs');
+
         $c->ajax_upload_setup(
             run_mode=>'file_upload',
-            httpdocs_dir=>'/var/www/vhosts/mywebapp/httpdocs',
             upload_subdir=>'/img/uploads',
         );
         return;
@@ -102,16 +104,21 @@ and allows callbacks to modify exactly how the file is stored.
 
 =head1 INTERFACE 
 
+=head2 ajax_upload_httpdocs
+
+The module needs to know the document root because it will need to
+to copy the file to a sub-directory of the document root,
+and it will need to pass that sub-directory back to the client as part
+of the URL. If passed a value it will store that as the document root.
+If not passed a value it will return the document root.
+
 =head2 ajax_upload_setup
 
-This method takes a number of named parameters
+This method sets up a run mode to handle a file upload
+and return a JSON message providing status. It takes a number of named
+parameters:
 
 =over
-
-=item httpdocs_dir
-
-This is the physical path of the directory storing the static files.
-If it does not exist an error will be thrown.
 
 =item upload_subdir
 
@@ -139,13 +146,18 @@ This is the name of the run mode that will handle this upload. It defaults to
 
 =head2 ajax_upload_rm
 
-This forms the implementation of the run mode. It takes the following actions:
+This forms the implementation of the run mode. It requires a C<file>
+parameter that provides the file data. Optionally it also takes a
+C<validate> parameter that will check all the file permissions.
+
+It takes the following actions:
 
 =over 
 
 =item --
 
-It will look for a CGI parameter called C<file>.
+If the C<validate> parameter is set the setup will check. If there
+is a problem a status message will be passed back to the user.
 
 =item --
 
