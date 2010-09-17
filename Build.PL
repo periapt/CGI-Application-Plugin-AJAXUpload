@@ -16,6 +16,7 @@ my $builder = Module::Build->new(
         'version'    => 0,
         'Exporter'   => 0,
         'CGI::Application' => 0,
+        'CGI::Application::Plugin::JSON'=>'1.02',
     },
     create_makefile_pl => 'traditional',
     create_readme=>1,

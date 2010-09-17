@@ -9,7 +9,7 @@ use vars qw(@EXPORT);
 @EXPORT = qw(
     ajax_upload_httpdocs
     ajax_upload_setup
-    ajax_upload_rm
+    _ajax_upload_rm
 );
 
 use version; our $VERSION = qv('0.0.1');
@@ -38,7 +38,7 @@ sub ajax_upload_setup {
     $self->run_modes(
         $run_mode => sub {
             my $c = shift;
-            return $c->ajax_upload_rm(
+            return $c->_ajax_upload_rm(
                 $upload_subdir,
                 $dfv_profile,
                 $filename_gen
@@ -49,21 +49,31 @@ sub ajax_upload_setup {
     return;
 }
 
-sub ajax_upload_rm {
+sub _ajax_upload_rm {
     my $self = shift;
     my $upload_subdir = shift;
     my $dfv_profile = shift;
     my $filename_gen = shift;
+    my $httpdocs_dir = $self->ajax_upload_httpdocs;  
+
+    if ($self->query->param('validate')) {
+
+        return $self->json_body({status => 'No document root specified'})
+            if not $httpdocs_dir;
+
+        return $self->json_body({status => 'Document root is not a directory'})
+            if not -d $httpdocs_dir;
+
+        my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
+
+        return $self->json_body({status => 'Upload folder is not a directory'})
+            if not -d $full_upload_dir;
+
+        return $self->json_body({status => 'Upload folder is not writeable'})
+            if not -w $full_upload_dir;
+        
+    }
 }
-
-#    croak "no httpdocs_dir specified" if not exists $args{httpdocs_dir};
-#    my $httpdocs_dir = $args{httpdocs_dir};
-#    croak "$httpdocs_dir is not a directory" if not -d $httpdocs_dir;
-#    my $httpdocs_dir = $self->ajax_upload_httpdocs;
-
-#    my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
-#    croak "$full_upload_dir is not a directory" if not -d $full_upload_dir;
-#    croak "$full_upload_dir is not writeable" if not -w $full_upload_dir;
 
 1; # Magic true value required at end of module
 __END__
@@ -79,6 +89,7 @@ This document describes CGI::Application::Plugin::AJAXUpload version 0.0.1
 =head1 SYNOPSIS
 
     use MyWebApp;
+    use CGI::Application::Plugin::JSON qw(json_body to_json);
     use CGI::Application::Plugin::AJAXUpload;
 
     sub setup {
@@ -155,7 +166,7 @@ This is the name of the run mode that will handle this upload. It defaults to
 
 =back
 
-=head2 ajax_upload_rm
+=head2 _ajax_upload_rm
 
 This forms the implementation of the run mode. It requires a C<file>
 parameter that provides the file data. Optionally it also takes a
@@ -222,14 +233,10 @@ is not supplied.
 
 =head1 DEPENDENCIES
 
-=for author to fill in:
-    A list of all the other modules that this module relies upon,
-    including any restrictions on versions, and an indication whether
-    the module is part of the standard Perl distribution, part of the
-    module's distribution, or must be installed separately. ]
-
-None.
-
+This depends on version 1.02 of L<CGI::Application::Plugin::JSON>. Earlier
+versions might work but they produce different headers which break the tests.
+One must load the JSON plugin in the web application code as shown in the
+synopsis.
 
 =head1 INCOMPATIBILITIES
 
