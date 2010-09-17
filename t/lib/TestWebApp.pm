@@ -23,7 +23,12 @@ sub setup {
         $self->ajax_upload_httpdocs($httpdocs_dir);
     }
 
-    $self->ajax_upload_setup();
+    if ($self->param('ajax_spec')) {
+        $self->ajax_upload_setup($self->param('ajax_spec'));
+    }
+    else {
+        $self->ajax_upload_setup();
+    }
 
     return;
 }

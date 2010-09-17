@@ -23,7 +23,6 @@ subtest 'httpdocs_dir not specified' => sub{
     );
     isa_ok($app, 'CGI::Application');
     $app->query->param(rm=>'ajax_upload_rm');
-    $app->query->param(validate=>1);
     $app->response_like(
         qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
         qr/{"status":"No document root specified"}/,

@@ -56,15 +56,15 @@ sub _ajax_upload_rm {
     my $filename_gen = shift;
     my $httpdocs_dir = $self->ajax_upload_httpdocs;  
 
-    if ($self->query->param('validate')) {
+    return $self->json_body({status => 'No document root specified'})
+        if not defined $httpdocs_dir;
 
-        return $self->json_body({status => 'No document root specified'})
-            if not $httpdocs_dir;
+    my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
+
+    if ($self->query->param('validate')) {
 
         return $self->json_body({status => 'Document root is not a directory'})
             if not -d $httpdocs_dir;
-
-        my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
 
         return $self->json_body({status => 'Upload folder is not a directory'})
             if not -d $full_upload_dir;
