@@ -16,14 +16,25 @@ use version; our $VERSION = qv('0.0.1');
 
 # Module implementation here
 
+sub ajax_upload_httpdocs {
+    my $self = shift;
+    my $httpdocs = shift;
+    if ($httpdocs) {
+        $self->{__CAP__AJAXUPLOAD_HTTPDOCS} = $httpdocs;
+        return;
+    }
+    return $self->{__CAP__AJAXUPLOAD_HTTPDOCS};
+}
+
 sub ajax_upload_setup {
     my $self = shift;
 
     my %args = @_;
 
-    croak "no httpdocs_dir specified" if not exists $args{httpdocs_dir};
-    my $httpdocs_dir = $args{httpdocs_dir};
-    croak "$httpdocs_dir is not a directory" if not -d $httpdocs_dir;
+#    croak "no httpdocs_dir specified" if not exists $args{httpdocs_dir};
+#    my $httpdocs_dir = $args{httpdocs_dir};
+#    croak "$httpdocs_dir is not a directory" if not -d $httpdocs_dir;
+    my $httpdocs_dir = $self->ajax_upload_httpdocs;
 
     my $upload_subdir = '/img/uploads';
     if (exists $args{upload_subdir}) {

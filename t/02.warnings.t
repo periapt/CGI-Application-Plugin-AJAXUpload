@@ -1,14 +1,16 @@
 use strict;
 use warnings;
 use Carp;
-use Test::More tests => 6;
-use Test::NoWarnings;
+use Test::More;
+#use Test::NoWarnings;
 use Test::Exception;
 use lib qw(t/lib);
 use TestWebAppBasic;
 use CGI;
 
 use File::Temp;
+
+plan skip_all => 'reworking';
 
 sub nonexistent_dir {
     my $new_dir = File::Temp->newdir;

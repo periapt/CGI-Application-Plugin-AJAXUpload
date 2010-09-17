@@ -14,11 +14,8 @@ sub setup {
     mkdir "${httpdocs_dir}/img";
     mkdir "${httpdocs_dir}/img/uploads";
 
-    my %ajax_upload_args = (
-        httpdocs_dir => $httpdocs_dir,
-    );
-
-    $self->ajax_upload_setup(%ajax_upload_args);
+    $self->ajax_upload_httpdocs($httpdocs_dir);
+    $self->ajax_upload_setup();
 
     return;
 }
