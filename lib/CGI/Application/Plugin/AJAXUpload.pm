@@ -49,7 +49,12 @@ sub ajax_upload_setup {
     return;
 }
 
-
+sub ajax_upload_rm {
+    my $self = shift;
+    my $upload_subdir = shift;
+    my $dfv_profile = shift;
+    my $filename_gen = shift;
+}
 
 #    croak "no httpdocs_dir specified" if not exists $args{httpdocs_dir};
 #    my $httpdocs_dir = $args{httpdocs_dir};
