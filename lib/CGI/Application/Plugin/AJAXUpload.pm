@@ -28,42 +28,37 @@ sub ajax_upload_httpdocs {
 
 sub ajax_upload_setup {
     my $self = shift;
-
     my %args = @_;
 
-#    croak "no httpdocs_dir specified" if not exists $args{httpdocs_dir};
-#    my $httpdocs_dir = $args{httpdocs_dir};
-#    croak "$httpdocs_dir is not a directory" if not -d $httpdocs_dir;
-    my $httpdocs_dir = $self->ajax_upload_httpdocs;
-
-    my $upload_subdir = '/img/uploads';
-    if (exists $args{upload_subdir}) {
-        $upload_subdir = $args{upload_subdir};
-    }
-    my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
-    croak "$full_upload_dir is not a directory" if not -d $full_upload_dir;
-    croak "$full_upload_dir is not writeable" if not -w $full_upload_dir;
-
+    my $upload_subdir = $args{upload_subdir} || '/img/uploads';
     my $dfv_profile = $args{dfv_profile};
     my $filename_gen = $args{filename_gen};
-    my $run_mode = 'ajax_upload_rm';
-    if (exists $args{run_mode}) {
-        $run_mode = $args{run_mode};
-    }
+    my $run_mode = $args{run_mode} || 'ajax_upload_rm';
 
     $self->run_modes(
         $run_mode => sub {
             my $c = shift;
-            return $c->ajax_upload_rm($httpdocs_dir,
-                                        $upload_subdir,
-                                        $dfv_profile,
-                                        $filename_gen
+            return $c->ajax_upload_rm(
+                $upload_subdir,
+                $dfv_profile,
+                $filename_gen
             );
         }
     );
 
     return;
 }
+
+
+
+#    croak "no httpdocs_dir specified" if not exists $args{httpdocs_dir};
+#    my $httpdocs_dir = $args{httpdocs_dir};
+#    croak "$httpdocs_dir is not a directory" if not -d $httpdocs_dir;
+#    my $httpdocs_dir = $self->ajax_upload_httpdocs;
+
+#    my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
+#    croak "$full_upload_dir is not a directory" if not -d $full_upload_dir;
+#    croak "$full_upload_dir is not writeable" if not -w $full_upload_dir;
 
 1; # Magic true value required at end of module
 __END__
