@@ -15,6 +15,7 @@ my $builder = Module::Build->new(
     requires => {
         'version'    => 0,
         'Exporter'   => 0,
+        'CGI'        => '3.41',
         'CGI::Application' => 0,
         'CGI::Application::Plugin::JSON'=>'1.02',
     },
