@@ -1,9 +1,10 @@
 use strict;
 use warnings;
 use Carp;
-use Test::More tests=>6;
+use Test::More tests=>7;
 use Test::NoWarnings;
 use Test::CGI::Multipart;
+use Test::CGI::Multipart::Gen::Image;
 use lib qw(t/lib);
 use TestWebApp;
 use CGI;
@@ -15,9 +16,17 @@ sub nonexistent_dir {
     return $new_dir->dirname;
 }
 
+sub valid_dir {
+    my $tmpdir = File::Temp->newdir;
+    my $tmpdir_name = $tmpdir->dirname;
+    mkdir "$tmpdir_name/img";
+    mkdir "$tmpdir_name/img/uploads";
+    return $tmpdir;
+}
+
 my $tcm = Test::CGI::Multipart->new;
 $tcm->set_param(name=>'rm', value=>'ajax_upload_rm');
-$tcm->upload_file(name=>'file', value=>'This is a test.',file=>'test.txt');
+$tcm->upload_file(name=>'file', width=>100,height=>100,file=>'test.txt',type=>'image/jpeg',instructions=>[]);
 
 subtest 'httpdocs_dir not specified' => sub{
     plan tests => 3;
@@ -100,17 +109,15 @@ subtest 'upload_subdir does not exist' => sub{
 
 subtest 'upload_subdir is not writeable' => sub{
     plan tests => 3;
-    my $tmpdir = File::Temp->newdir;
+    my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
-    mkdir "$tmpdir_name/img";
-    mkdir "$tmpdir_name/img/uploads";
     chmod 300, "$tmpdir_name/img/uploads";
     my $app = TestWebApp->new(
         QUERY=>$tcm->create_cgi,
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
-                $c->ajax_upload_httpdocs($tmpdir->dirname);
+                $c->ajax_upload_httpdocs($tmpdir_name);
             }
         },
     );
@@ -122,5 +129,26 @@ subtest 'upload_subdir is not writeable' => sub{
         'Upload folder is not writeable'
     );
 };
+
+subtest 'no file parameter' => sub{
+    plan tests => 3;
+    my $tmpdir = valid_dir();
+    my $tmpdir_name = $tmpdir->dirname;
+    my $app = TestWebApp->new(
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            }
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->response_like(
+        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        qr/{"status":"Upload folder is not writeable"}/,
+        'no file parameter'
+    );
+};
+
 
 

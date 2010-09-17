@@ -94,6 +94,10 @@ sub _ajax_upload_rm {
         
     }
 
+    my $value = $results->valid('file');
+    return $self->json_body({status => 'No data uploaded'}) if not -w $value;
+        
+
 }
 
 sub _ajax_upload_default_profile {
@@ -107,6 +111,7 @@ sub _ajax_upload_default_profile {
         required => ['file'],
         constraint_methods => {
             file => [
+                qr/^.+/,
                 file_format(mime_types => $DEFAULT_MIME_TYPES),
                 file_max_bytes(10_000_000),
             ],
