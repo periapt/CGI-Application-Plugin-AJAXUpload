@@ -11,6 +11,7 @@ my $builder = Module::Build->new(
         'Test::More' => '0.96',
         'File::Temp' => 0,
         'Test::NoWarnings' => 0,
+        'Test::Warn'=>0,
     },
     requires => {
         'version'    => 0,
@@ -18,6 +19,8 @@ my $builder = Module::Build->new(
         'CGI'        => '3.41',
         'CGI::Application' => 0,
         'CGI::Application::Plugin::JSON'=>'1.02',
+        'CGI::Upload'=>0,
+        'Perl6::Slurp'=>0,
     },
     create_makefile_pl => 'traditional',
     create_readme=>1,

@@ -1,16 +1,24 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl -wT
 use strict;
 use warnings;
 use Carp;
-use Test::More tests=>9;
+use Test::More;
 use Test::NoWarnings;
 use Test::CGI::Multipart;
 use lib qw(t/lib);
-use TestWebApp;
-use CGI;
 use Perl6::Slurp;
-
+use Readonly;
 use File::Temp;
+use TestWebApp;
+
+plan tests=> 1+8*TestWebApp::cgi_tests();
+
+Readonly my $CONTENT_RE =>
+    qr{
+        \A
+        Encoding:\s+utf-8\s+Content-Type:\s+application/json
+        (?:;\s+charset=utf-8)?
+    }xms;
 
 sub nonexistent_dir {
     my $new_dir = File::Temp->newdir;
@@ -25,6 +33,8 @@ sub valid_dir {
     return $tmpdir;
 }
 
+foreach my $cgi (TestWebApp::cgi_tests()) {
+
 my $tcm = Test::CGI::Multipart->new;
 $tcm->set_param(name=>'rm', value=>'ajax_upload_rm');
 $tcm->upload_file(name=>'file', value=>'This is a test!',file=>'test.txt');
@@ -32,14 +42,14 @@ $tcm->upload_file(name=>'file', value=>'This is a test!',file=>'test.txt');
 subtest 'httpdocs_dir not specified' => sub{
     plan tests => 3;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi,
+        QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
             document_root=>sub {}
         },
     );
     isa_ok($app, 'CGI::Application');
     $app->response_like(
-        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        $CONTENT_RE,
         qr/{"status":"No document root specified"}/,
         'httpdocs_dir not specified'
     );
@@ -48,7 +58,7 @@ subtest 'httpdocs_dir not specified' => sub{
 subtest 'httpdocs_dir does not exist' => sub{
     plan tests => 3;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi,
+        QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -59,7 +69,7 @@ subtest 'httpdocs_dir does not exist' => sub{
     isa_ok($app, 'CGI::Application');
     $app->query->param(validate=>1);
     $app->response_like(
-        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        $CONTENT_RE,
         qr/{"status":"Document root is not a directory"}/,
         'httpdocs_dir does not exist'
     );
@@ -69,7 +79,7 @@ subtest 'httpdocs_dir not a directory' => sub{
     plan tests => 3;
     my $actually_a_file = File::Temp->new;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi,
+        QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -81,7 +91,7 @@ subtest 'httpdocs_dir not a directory' => sub{
     $app->query->param(rm=>'ajax_upload_rm');
     $app->query->param(validate=>1);
     $app->response_like(
-        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        $CONTENT_RE,
         qr/{"status":"Document root is not a directory"}/,
         'httpdocs_dir not a directory'
     );
@@ -91,7 +101,7 @@ subtest 'upload_subdir does not exist' => sub{
     plan tests => 3;
     my $tmpdir = File::Temp->newdir;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi,
+        QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -102,7 +112,7 @@ subtest 'upload_subdir does not exist' => sub{
     isa_ok($app, 'CGI::Application');
     $app->query->param(validate=>1);
     $app->response_like(
-        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        $CONTENT_RE,
         qr/{"status":"Upload folder is not a directory"}/,
         'upload folder does not exist'
     );
@@ -114,7 +124,7 @@ subtest 'upload_subdir is not writeable' => sub{
     my $tmpdir_name = $tmpdir->dirname;
     chmod 300, "$tmpdir_name/img/uploads";
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi,
+        QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -125,7 +135,7 @@ subtest 'upload_subdir is not writeable' => sub{
     isa_ok($app, 'CGI::Application');
     $app->query->param(validate=>1);
     $app->response_like(
-        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        $CONTENT_RE,
         qr/{"status":"Upload folder is not writeable"}/,
         'Upload folder is not writeable'
     );
@@ -138,7 +148,7 @@ subtest 'no file parameter' => sub{
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
-        QUERY=>$tcm2->create_cgi,
+        QUERY=>$tcm2->create_cgi(cgi=>$cgi),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -148,7 +158,7 @@ subtest 'no file parameter' => sub{
     );
     isa_ok($app, 'CGI::Application');
     $app->response_like(
-        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        $CONTENT_RE,
         qr/{"status":"No file handle returned"}/,
         'no file parameter'
     );
@@ -160,7 +170,7 @@ subtest 'internal error' => sub{
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi,
+        QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -173,7 +183,7 @@ subtest 'internal error' => sub{
     );
     isa_ok($app, 'CGI::Application');
     $app->response_like(
-        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        $CONTENT_RE,
         qr/{"status":"Internal Error"}/,
         'Internal Error',
         qr/Help!/
@@ -185,7 +195,7 @@ subtest 'success' => sub{
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi,
+        QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -195,14 +205,14 @@ subtest 'success' => sub{
     );
     isa_ok($app, 'CGI::Application');
     $app->response_like(
-        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        $CONTENT_RE,
         qr!{"status":"SUCCESS","url":"/img/uploads/test.txt"}!xms,
         'success'
     );
     is(slurp("$tmpdir_name/img/uploads/test.txt"), "This is a test!", 'file contents');
 };
 
-
+}
 
 
 

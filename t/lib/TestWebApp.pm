@@ -56,4 +56,15 @@ sub response_like {
     return;
 }
 
+sub cgi_tests {
+    my @tests;
+    foreach my $c (qw(CGI CGI::Simple)) {
+        eval "require $c";
+        if (not $@) {
+            push @tests, $c;
+        }
+    }
+    return @tests;
+}
+
 1
