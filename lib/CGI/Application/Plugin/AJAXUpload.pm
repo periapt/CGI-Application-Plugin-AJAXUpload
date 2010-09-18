@@ -40,11 +40,18 @@ sub ajax_upload_setup {
     $self->run_modes(
         $run_mode => sub {
             my $c = shift;
-            return $c->_ajax_upload_rm(
-                $upload_subdir,
-                $dfv_profile,
-                $filename_gen
-            );
+            my $r = eval {
+                $c->_ajax_upload_rm(
+                    $upload_subdir,
+                    $dfv_profile,
+                    $filename_gen
+                );
+            };
+            if ($@) {
+                carp $@;
+                return $c->json_body({status=> 'Internal Error'});
+            }
+            return $r;
         }
     );
 
@@ -52,6 +59,7 @@ sub ajax_upload_setup {
 }
 
 sub _ajax_upload_rm {
+    use autodie qw(open close);
     my $self = shift;
     my $upload_subdir = shift;
     my $dfv_profile = shift;
@@ -84,8 +92,18 @@ sub _ajax_upload_rm {
 
     my $value = slurp $fh;
     return $self->json_body({status => 'No data uploaded'}) if not $value;
-        
+    close $fh;
 
+    my $filename =  $upload->file_name('file');
+    if ($filename_gen) {
+        $filename = &$filename_gen($filename);
+    }
+    
+    open $fh, '<', "$full_upload_dir/$filename";
+    print {$fh} $value;
+    close $fh;
+
+    return $self->json_body({status=>'SUCCESS',url=>"$upload_subdir/$filename"});
 }
 
 1; # Magic true value required at end of module
