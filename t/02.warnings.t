@@ -4,7 +4,6 @@ use Carp;
 use Test::More tests=>7;
 use Test::NoWarnings;
 use Test::CGI::Multipart;
-use Test::CGI::Multipart::Gen::Image;
 use lib qw(t/lib);
 use TestWebApp;
 use CGI;
@@ -26,7 +25,7 @@ sub valid_dir {
 
 my $tcm = Test::CGI::Multipart->new;
 $tcm->set_param(name=>'rm', value=>'ajax_upload_rm');
-$tcm->upload_file(name=>'file', width=>100,height=>100,file=>'test.txt',type=>'image/jpeg',instructions=>[]);
+$tcm->upload_file(name=>'file', value=>'This is a test!',file=>'test.txt');
 
 subtest 'httpdocs_dir not specified' => sub{
     plan tests => 3;
@@ -130,11 +129,14 @@ subtest 'upload_subdir is not writeable' => sub{
     );
 };
 
+my $tcm2 = Test::CGI::Multipart->new;
+$tcm2->set_param(name=>'rm', value=>'ajax_upload_rm');
 subtest 'no file parameter' => sub{
     plan tests => 3;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
+        QUERY=>$tcm2->create_cgi,
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -145,7 +147,7 @@ subtest 'no file parameter' => sub{
     isa_ok($app, 'CGI::Application');
     $app->response_like(
         qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
-        qr/{"status":"Upload folder is not writeable"}/,
+        qr/{"status":"No file handle returned"}/,
         'no file parameter'
     );
 };

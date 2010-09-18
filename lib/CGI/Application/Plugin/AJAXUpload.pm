@@ -1,19 +1,12 @@
 package CGI::Application::Plugin::AJAXUpload;
-use Data::FormValidator;
 
 use warnings;
 use strict;
 use Carp;
 use base qw(Exporter);
 use vars qw(@EXPORT);
-use Readonly;
-
-Readonly my $DEFAULT_MIME_TYPES => [
-    'image/jpeg',
-    'image/gif',
-    'image/png',
-    'text/plain',
-];
+use CGI::Upload;
+use Perl6::Slurp;
 
 @EXPORT = qw(
     ajax_upload_httpdocs
@@ -40,7 +33,7 @@ sub ajax_upload_setup {
     my %args = @_;
 
     my $upload_subdir = $args{upload_subdir} || '/img/uploads';
-    my $dfv_profile = $args{dfv_profile} || _ajax_upload_default_profile();
+    my $dfv_profile = $args{dfv_profile};
     my $filename_gen = $args{filename_gen};
     my $run_mode = $args{run_mode} || 'ajax_upload_rm';
 
@@ -69,19 +62,9 @@ sub _ajax_upload_rm {
         if not defined $httpdocs_dir;
 
     my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
+    my $query = $self->query;
 
-    my $results = Data::FormValidator->check($self->query, $dfv_profile);
-    if (!$results->success) {
-        my $status = "";
-        foreach my $key (%{$results->msgs}) {
-            my $text = $results->msgs->{$key};
-            $status .= "$key: $text\n";
-        }
-        return $self->json_body({status => $status})
-    }
-    
-    my $validate = $results->valid('validate');
-    if ($validate) {
+    if ($query->param('validate')) {
 
         return $self->json_body({status => 'Document root is not a directory'})
             if not -d $httpdocs_dir;
@@ -94,31 +77,16 @@ sub _ajax_upload_rm {
         
     }
 
-    my $value = $results->valid('file');
-    return $self->json_body({status => 'No data uploaded'}) if not -w $value;
+    my $upload = CGI::Upload->new({query=>$query});
+    my $fh = $upload->file_handle('file');
+    return $self->json_body({status => 'No file handle returned'})
+        if not $fh;
+
+    my $value = slurp $fh;
+    return $self->json_body({status => 'No data uploaded'}) if not $value;
         
 
 }
-
-sub _ajax_upload_default_profile {
-    use Data::FormValidator::Constraints::Upload qw(
-        file_format
-        file_max_bytes
-    );
-    my $self = shift;
-    return {
-        optional => ['validate'],
-        required => ['file'],
-        constraint_methods => {
-            file => [
-                qr/^.+/,
-                file_format(mime_types => $DEFAULT_MIME_TYPES),
-                file_max_bytes(10_000_000),
-            ],
-        },
-    };
-}
-                
 
 1; # Magic true value required at end of module
 __END__
