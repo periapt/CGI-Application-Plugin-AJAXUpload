@@ -91,6 +91,8 @@ sub _ajax_upload_rm {
         if not $fh;
 
     my $value = slurp $fh;
+    $value =~ /^(.*)$/;
+    $value = $1;
     return $self->json_body({status => 'No data uploaded'}) if not $value;
     close $fh;
 
@@ -98,6 +100,8 @@ sub _ajax_upload_rm {
     if ($filename_gen) {
         $filename = &$filename_gen($filename);
     }
+    $filename =~ /^(.*)$/;
+    $filename = $1;
     
     open $fh, '>', "$full_upload_dir/$filename";
     print {$fh} $value;
