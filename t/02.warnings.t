@@ -206,7 +206,7 @@ subtest 'success' => sub{
     isa_ok($app, 'CGI::Application');
     $app->response_like(
         $CONTENT_RE,
-        qr!{"status":"SUCCESS","url":"/img/uploads/test.txt"}!xms,
+        qr!{"status":"SUCCESS","image_url":"/img/uploads/test.txt"}!xms,
         'success'
     );
     is(slurp("$tmpdir_name/img/uploads/test.txt"), "This is a test!", 'file contents');

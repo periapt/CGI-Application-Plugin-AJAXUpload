@@ -107,7 +107,10 @@ sub _ajax_upload_rm {
     print {$fh} $value;
     close $fh;
 
-    return $self->json_body({status=>'SUCCESS',url=>"$upload_subdir/$filename"});
+    return $self->json_body({
+        status=>'SUCCESS',
+        image_url=>"$upload_subdir/$filename"
+    });
 }
 
 1; # Magic true value required at end of module
@@ -156,9 +159,6 @@ L<YUI rich text editor|http://developer.yahoo.com/yui/editor>. However as far as
 I can see it could be used as a back end for any L<CGI::Application> website that uploads files behind the scenes using AJAX. In any case this module does NOT
 provide any of that client side code and you must also map the run mode onto the URL used by client-side code.
 
-It can also hand validation of the image to L<Data::FormValidator> style objects
-and allows callbacks to modify exactly how the file is stored.
-
 =head1 INTERFACE 
 
 =head2 ajax_upload_httpdocs
@@ -184,7 +184,8 @@ be written to. It must be writeable. It defaults to '/img/uploads'.
 
 =item dfv_profile
 
-This is L<Data::FormValidator> profile. If it is not set the data will be taken on trust.
+This is L<Data::FormValidator> profile. If it is not set the data will be
+taken on trust.
 
 =item filename_gen
 
@@ -205,7 +206,7 @@ This is the name of the run mode that will handle this upload. It defaults to
 
 This forms the implementation of the run mode. It requires a C<file>
 parameter that provides the file data. Optionally it also takes a
-C<validate> parameter that will check all the file permissions.
+C<validate> parameter that will check the file permissions.
 
 It takes the following actions:
 
@@ -245,23 +246,10 @@ The successful JSON message will be passed back to the client.
 
 =head1 DIAGNOSTICS
 
-=over
-
-=item C<< no httpdocs_dir specified >>
-
-A C<httpdocs_dir> parameter must be specified in the C<ajax_upload_setup>
-method.
-
-=item C<< %s is not a directory >>
-
-The C<httpdocs_dir> parameter must be a directory.
-
-=item C<< %s is not writeable >>
-
-The C<upload_subdir> parameter must be a writeable directory.
-
-=back
-
+Most error messages will be passed back to the client as a JSON
+message, though in a sanitized form. One error 'Internal Error' is
+fairly generic and so the underlying error message is written to standard 
+error. 
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
@@ -277,9 +265,9 @@ synopsis.
 
 =head1 BUGS AND LIMITATIONS
 
-For the moment there is no intention to support CGI engines other than
-L<CGI>. That may come in the future however each of those modules
-has a different interface.
+This module depends on L<CGI::Upload> for its heavy lifting. Thus, due to
+current limitations of that module, it depends on either L<CGI> or
+L<CGI::Simple>.
 
 Please report any bugs or feature requests to
 C<bug-cgi-application-plugin-ajaxupload@rt.cpan.org>, or through the web interface at
