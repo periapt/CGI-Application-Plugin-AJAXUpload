@@ -1,8 +1,8 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl 
 use strict;
 use warnings;
 use Carp;
-use Test::More tests=>8;
+use Test::More tests=>9;
 use Test::NoWarnings;
 use Test::CGI::Multipart;
 use lib qw(t/lib);
@@ -151,6 +151,32 @@ subtest 'no file parameter' => sub{
         qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
         qr/{"status":"No file handle returned"}/,
         'no file parameter'
+    );
+};
+
+
+subtest 'internal error' => sub{
+    plan tests => 4;
+    my $tmpdir = valid_dir();
+    my $tmpdir_name = $tmpdir->dirname;
+    my $app = TestWebApp->new(
+        QUERY=>$tcm->create_cgi,
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            },
+            ajax_spec => {
+                filename_gen=>sub {croak "Help!"}
+            }
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->response_like(
+        qr{Encoding:\s+utf-8\s+Content-Type:\s+application/json;\s+charset=utf-8}xms,
+        qr/{"status":"Internal Error"}/,
+        'Internal Error',
+        qr/Help!/
     );
 };
 

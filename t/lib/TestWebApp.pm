@@ -4,6 +4,7 @@ use CGI::Application::Plugin::JSON qw(json_body to_json);
 use CGI::Application::Plugin::AJAXUpload;
 use File::Temp;
 use Test::More;
+use Test::Warn;
 
 $ENV{CGI_APP_RETURN_ONLY} = 1;
 
@@ -24,7 +25,7 @@ sub setup {
     }
 
     if ($self->param('ajax_spec')) {
-        $self->ajax_upload_setup($self->param('ajax_spec'));
+        $self->ajax_upload_setup(%{$self->param('ajax_spec')});
     }
     else {
         $self->ajax_upload_setup();
@@ -38,8 +39,15 @@ sub response_like {
     my $header_re = shift;
     my $body_re = shift;
     my $comment = shift;
+    my $warning_re = shift;
 
-    my $output = $self->run;
+    my $output = undef;
+    if ($warning_re) {
+        warning_like {$output = $self->run;} $warning_re, "warning: $comment";
+    }
+    else {
+        $output = $self->run;
+    }
 
     my ($header, $body) = split /\r\n\r\n/, $output;
     like($header, $header_re, "$comment (header match)");
