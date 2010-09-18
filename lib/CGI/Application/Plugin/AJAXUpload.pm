@@ -245,6 +245,8 @@ The successful JSON message will be passed back to the client.
 
 =head1 DIAGNOSTICS
 
+=over
+
 =item C<< no httpdocs_dir specified >>
 
 A C<httpdocs_dir> parameter must be specified in the C<ajax_upload_setup>
