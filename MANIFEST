@@ -14,6 +14,7 @@ t/lib/TestWebApp.pm
 t/manifest.t
 t/perlcritic.t
 t/pod-coverage.t
+t/pod-no404s.t
 t/pod.t
 t/podspell.t
 t/prereq.t
