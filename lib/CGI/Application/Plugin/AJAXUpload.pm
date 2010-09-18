@@ -99,7 +99,7 @@ sub _ajax_upload_rm {
         $filename = &$filename_gen($filename);
     }
     
-    open $fh, '<', "$full_upload_dir/$filename";
+    open $fh, '>', "$full_upload_dir/$filename";
     print {$fh} $value;
     close $fh;
 
