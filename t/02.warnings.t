@@ -8,6 +8,7 @@ use Test::CGI::Multipart;
 use lib qw(t/lib);
 use TestWebApp;
 use CGI;
+use Perl6::Slurp;
 
 use File::Temp;
 
@@ -154,7 +155,7 @@ subtest 'no file parameter' => sub{
 };
 
 subtest 'success' => sub{
-    plan tests => 3;
+    plan tests => 4;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
@@ -172,6 +173,7 @@ subtest 'success' => sub{
         qr!{"status":"SUCCESS","url":"/img/uploads/test.txt"}!xms,
         'success'
     );
+    is(slurp("$tmpdir_name/img/uploads/test.txt"), "This is a test!", 'file contents');
 };
 
 
