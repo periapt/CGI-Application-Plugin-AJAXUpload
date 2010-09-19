@@ -20,6 +20,9 @@ Readonly my $CONTENT_RE =>
         (?:;\s+charset=utf-8)?
     }xms;
 
+my $profile = TestWebApp->_default_profile();
+$profile->{constraint_methods}->{mime_type} = qr{^text/plain$};
+
 sub nonexistent_dir {
     my $new_dir = File::Temp->newdir;
     return $new_dir->dirname;
@@ -44,7 +47,10 @@ subtest 'httpdocs_dir not specified' => sub{
     my $app = TestWebApp->new(
         QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
-            document_root=>sub {}
+            document_root=>sub {},
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
         },
     );
     isa_ok($app, 'CGI::Application');
@@ -63,7 +69,10 @@ subtest 'httpdocs_dir does not exist' => sub{
             document_root=>sub {
                 my $c = shift;
                 $c->ajax_upload_httpdocs(nonexistent_dir());
-            }
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
         },
     );
     isa_ok($app, 'CGI::Application');
@@ -84,7 +93,10 @@ subtest 'httpdocs_dir not a directory' => sub{
             document_root=>sub {
                 my $c = shift;
                 $c->ajax_upload_httpdocs($actually_a_file->filename);
-            }
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
         },
     );
     isa_ok($app, 'CGI::Application');
@@ -106,7 +118,10 @@ subtest 'upload_subdir does not exist' => sub{
             document_root=>sub {
                 my $c = shift;
                 $c->ajax_upload_httpdocs($tmpdir->dirname);
-            }
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
         },
     );
     isa_ok($app, 'CGI::Application');
@@ -129,7 +144,10 @@ subtest 'upload_subdir is not writeable' => sub{
             document_root=>sub {
                 my $c = shift;
                 $c->ajax_upload_httpdocs($tmpdir_name);
-            }
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
         },
     );
     isa_ok($app, 'CGI::Application');
@@ -153,7 +171,10 @@ subtest 'no file parameter' => sub{
             document_root=>sub {
                 my $c = shift;
                 $c->ajax_upload_httpdocs($tmpdir_name);
-            }
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
         },
     );
     isa_ok($app, 'CGI::Application');
@@ -200,7 +221,10 @@ subtest 'success' => sub{
             document_root=>sub {
                 my $c = shift;
                 $c->ajax_upload_httpdocs($tmpdir_name);
-            }
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
         },
     );
     isa_ok($app, 'CGI::Application');

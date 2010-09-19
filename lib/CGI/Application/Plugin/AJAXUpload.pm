@@ -151,7 +151,14 @@ sub _default_profile {
                 $dfv->set_current_constraint_name('data_size');
                 return $val < 10_000_000;
             },
-            type=>qr{^text/plain$},
+            mime_type=>qr{
+                \A
+                img/
+                (?:
+                    jpeg|png|gif
+                )
+                \z
+            }xms,
         },
     };
 }
