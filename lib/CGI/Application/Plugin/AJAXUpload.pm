@@ -13,7 +13,7 @@ use Data::FormValidator;
 @EXPORT = qw(
     ajax_upload_httpdocs
     ajax_upload_setup
-    _default_profile
+    ajax_upload_default_profile
     _ajax_upload_rm
 );
 
@@ -39,7 +39,8 @@ sub ajax_upload_setup {
     my %args = @_;
 
     my $upload_subdir = $args{upload_subdir} || '/img/uploads';
-    my $dfv_profile = $args{dfv_profile} || $self->_default_profile();
+    my $dfv_profile = $args{dfv_profile}
+                    || $self->ajax_upload_default_profile();
     my $run_mode = $args{run_mode} || 'ajax_upload_rm';
     my $mime_magic = $args{mime_magic};
 
@@ -139,7 +140,7 @@ sub _compile_messages {
     return $self=>json_body({status=>$text});
 }
 
-sub _default_profile {
+sub ajax_upload_default_profile {
     return {
         required=>[qw(value file_name mime_type file_type data_size)],
         untaint_all_constraints=>1,
@@ -278,6 +279,11 @@ This is the optional I<mime_magic> parameter passed to the L<CGI::Upload>
 object.
 
 =back
+
+=head2 ajax_upload_default_profile
+
+This returns a hash reference to the default L<Data::FormValidator>
+profile. It can be called as a class method.
 
 =head2 _ajax_upload_rm
 

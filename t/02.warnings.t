@@ -20,7 +20,7 @@ Readonly my $CONTENT_RE =>
         (?:;\s+charset=utf-8)?
     }xms;
 
-my $profile = TestWebApp->_default_profile();
+my $profile = TestWebApp->ajax_upload_default_profile();
 $profile->{constraint_methods}->{mime_type} = qr{^text/plain$};
 
 sub nonexistent_dir {
