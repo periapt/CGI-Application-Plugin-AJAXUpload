@@ -7,16 +7,22 @@ use base qw(Exporter);
 use vars qw(@EXPORT);
 use CGI::Upload;
 use Perl6::Slurp;
+use Readonly;
+use Data::FormValidator;
 
 @EXPORT = qw(
     ajax_upload_httpdocs
     ajax_upload_setup
     _ajax_upload_rm
+    _default_profile
+    _compile_messages
 );
 
 use version; our $VERSION = qv('0.0.1');
 
 # Module implementation here
+
+Readonly my $FIELD_NAME => 'file';
 
 sub ajax_upload_httpdocs {
     my $self = shift;
@@ -33,9 +39,9 @@ sub ajax_upload_setup {
     my %args = @_;
 
     my $upload_subdir = $args{upload_subdir} || '/img/uploads';
-    my $dfv_profile = $args{dfv_profile};
-    my $filename_gen = $args{filename_gen};
+    my $dfv_profile = $args{dfv_profile} || $self->_default_profile();
     my $run_mode = $args{run_mode} || 'ajax_upload_rm';
+    my $mime_magic = $args{mime_magic};
 
     $self->run_modes(
         $run_mode => sub {
@@ -44,7 +50,7 @@ sub ajax_upload_setup {
                 $c->_ajax_upload_rm(
                     $upload_subdir,
                     $dfv_profile,
-                    $filename_gen
+                    $mime_magic,
                 );
             };
             if ($@) {
@@ -63,7 +69,7 @@ sub _ajax_upload_rm {
     my $self = shift;
     my $upload_subdir = shift;
     my $dfv_profile = shift;
-    my $filename_gen = shift;
+    my $mime_magic = shift;
     my $httpdocs_dir = $self->ajax_upload_httpdocs;  
 
     return $self->json_body({status => 'No document root specified'})
@@ -86,22 +92,32 @@ sub _ajax_upload_rm {
     }
 
     my $upload = CGI::Upload->new({query=>$query});
-    my $fh = $upload->file_handle('file');
+    if ($mime_magic) {
+        $upload->mime_magic($mime_magic);
+    }
+    my $fh = $upload->file_handle($FIELD_NAME);
     return $self->json_body({status => 'No file handle returned'})
         if not $fh;
 
     my $value = slurp $fh;
-    $value =~ /^(.*)$/;
-    $value = $1;
-    return $self->json_body({status => 'No data uploaded'}) if not $value;
     close $fh;
+    my $filename =  $upload->file_name($FIELD_NAME);
 
-    my $filename =  $upload->file_name('file');
-    if ($filename_gen) {
-        $filename = &$filename_gen($filename);
-    }
-    $filename =~ /^(.*)$/;
-    $filename = $1;
+    my $data = {
+        value => $value,
+        file_name => $filename,
+        mime_type => $upload->mime_type($FIELD_NAME),
+        file_type => $upload->file_type($FIELD_NAME),
+        data_size => length $value,
+    };
+    my $results = Data::FormValidator->check($data, $dfv_profile);
+    return $self->_compile_messages($results) if ! $results->success;
+
+    $value = $results->valid('value');
+    $filename = $results->valid('file_name');
+
+    return $self->json_body({status => 'No data uploaded'}) if not $value;
+    return $self->json_body({status => 'No file name'}) if not $value;
     
     open $fh, '>', "$full_upload_dir/$filename";
     print {$fh} $value;
@@ -111,6 +127,33 @@ sub _ajax_upload_rm {
         status=>'SUCCESS',
         image_url=>"$upload_subdir/$filename"
     });
+}
+
+sub _compile_messages {
+    my $self = shift;
+    my $msgs = shift;
+    my $text = '';
+    foreach my $key (keys  %$msgs) {
+        $text .= "[$key] $msgs->{$key}\n";
+    }
+    return $self=>json_body({status=>$text});
+}
+
+sub _default_profile {
+    return {
+        required=>[qw(value file_name mime_type file_type data_size)],
+        untaint_all_constraints=>1,
+        constraint_methods => {
+            value=>qr/^.+$/,
+            file_name=>qr/^[\w\.\-\_]{1,30}$/,
+            data_size=>sub {
+                my ($dfv, $val) = @_;
+                $dfv->set_current_constraint_name('data_size');
+                return $val < 10_000_000;
+            },
+            type=>qr{^text/plain$},
+        },
+    };
 }
 
 1; # Magic true value required at end of module
