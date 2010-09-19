@@ -187,9 +187,14 @@ subtest 'no file parameter' => sub{
 
 
 subtest 'internal error' => sub{
-    plan skip_all => 'broken';
+    plan tests => 4;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
+    local $profile->{field_filters} = {
+        file_name => [
+            sub {croak "Help!"},
+        ],
+    };
     my $app = TestWebApp->new(
         QUERY=>$tcm->create_cgi(cgi=>$cgi),
         PARAMS=>{
@@ -197,9 +202,9 @@ subtest 'internal error' => sub{
                 my $c = shift;
                 $c->ajax_upload_httpdocs($tmpdir_name);
             },
-            ajax_spec => {
-                filename_gen=>sub {croak "Help!"}
-            }
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
         },
     );
     isa_ok($app, 'CGI::Application');
