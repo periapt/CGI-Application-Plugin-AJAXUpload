@@ -18,7 +18,11 @@ if ( $EVAL_ERROR ) {
 Test::Spelling::add_stopwords(qw(   JSON
                                     CPAN
                                     Bamber
+                                    AllMyBrain
+                                    CGI
+                                    com's
                                     github
+                                    YUI
                                     AnnoCPAN
                                     RT
                                     API
@@ -48,9 +52,8 @@ Test::Spelling::add_stopwords(qw(   JSON
                                     callback
                                     callbacks
                                     checkbox
-                                    customize
-                                    customized
                                     desaturating
+                                    writeable
                                     detaint
                                     URLs));
 Test::Spelling::all_pod_files_spelling_ok();

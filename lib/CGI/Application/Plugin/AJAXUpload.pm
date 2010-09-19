@@ -143,7 +143,7 @@ This document describes CGI::Application::Plugin::AJAXUpload version 0.0.1
 
 =head1 DESCRIPTION
 
-This module provides a customizable run mode that handles a file upload
+This module provides a customisable run mode that handles a file upload
 and responds with a JSON message like the following:
 
     {status: 'UPLOADED', image_url: '/img/uploads/666.png'}
@@ -179,7 +179,7 @@ parameters:
 
 =item upload_subdir
 
-This is the sub-directory of C<httpdocs_dir> where the files will actually
+This is the sub-directory of I<httpdocs_dir> where the files will actually
 be written to. It must be writeable. It defaults to '/img/uploads'.
 
 =item dfv_profile
@@ -204,9 +204,9 @@ This is the name of the run mode that will handle this upload. It defaults to
 
 =head2 _ajax_upload_rm
 
-This forms the implementation of the run mode. It requires a C<file>
+This forms the implementation of the run mode. It requires a I<file>
 parameter that provides the file data. Optionally it also takes a
-C<validate> parameter that will check the file permissions.
+I<validate> parameter that will check the file permissions.
 
 It takes the following actions:
 
@@ -214,7 +214,7 @@ It takes the following actions:
 
 =item --
 
-If the C<validate> parameter is set the setup will check. If there
+If the I<validate> parameter is set the setup will check. If there
 is a problem a status message will be passed back to the user.
 
 =item --
@@ -235,8 +235,8 @@ The filename will be passed through the file name generator.
 =item --
 
 The data will then be copied to the given file, its path being the 
-combination of the C<httpdocs_dir> parameter, the
-C<upload_subdir> and the generated file name.
+combination of the I<httpdocs_dir> parameter, the
+I<upload_subdir> and the generated file name.
 
 =item - 
 
@@ -247,7 +247,7 @@ The successful JSON message will be passed back to the client.
 =head1 DIAGNOSTICS
 
 Most error messages will be passed back to the client as a JSON
-message, though in a sanitized form. One error 'Internal Error' is
+message, though in a sanitised form. One error 'Internal Error' is
 fairly generic and so the underlying error message is written to standard 
 error. 
 
