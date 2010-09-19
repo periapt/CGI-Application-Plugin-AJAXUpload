@@ -22,7 +22,8 @@ if ( $EVAL_ERROR) {
    plan( skip_all => $msg );
 }
 my $ping = Net::Ping->new;
-if (! $ping->ping('www.google.com')) {
+my @google = $ping->ping('www.google.com');
+if (! @google) {
    my $msg = 'Apparently no internet at all';
    plan( skip_all => $msg );
 }
