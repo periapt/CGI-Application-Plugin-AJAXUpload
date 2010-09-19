@@ -11,7 +11,7 @@ use Readonly;
 use File::Temp;
 use TestWebApp;
 
-plan tests=> 1+8*TestWebApp::cgi_tests();
+plan tests=> 1+9*TestWebApp::cgi_tests();
 
 Readonly my $CONTENT_RE =>
     qr{
@@ -214,6 +214,38 @@ subtest 'internal error' => sub{
         'Internal Error',
         qr/Help!/
     );
+};
+
+my $tcm3 = Test::CGI::Multipart->new;
+$tcm3->set_param(name=>'rm', value=>'file_upload');
+$tcm3->upload_file(name=>'file', value=>'This is a test!',file=>'test.txt');
+subtest 'options' => sub{
+    plan tests => 4;
+    my $upload_subdir = '/images';
+    my $tmpdir = File::Temp->newdir;
+    my $tmpdir_name = $tmpdir->dirname;
+    mkdir "$tmpdir_name$upload_subdir";
+    my $app = TestWebApp->new(
+        QUERY=>$tcm3->create_cgi(cgi=>$cgi),
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            },
+            ajax_spec=> {
+                run_mode=>'file_upload',
+                dfv_profile=>$profile,
+                upload_subdir=>$upload_subdir,
+            },
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->response_like(
+        $CONTENT_RE,
+        qr!{"status":"SUCCESS","image_url":"$upload_subdir/test.txt"}!xms,
+        'success'
+    );
+    is(slurp("$tmpdir_name$upload_subdir/test.txt"), "This is a test!", 'file contents');
 };
 
 subtest 'success' => sub{
