@@ -13,9 +13,8 @@ use Data::FormValidator;
 @EXPORT = qw(
     ajax_upload_httpdocs
     ajax_upload_setup
-    _ajax_upload_rm
     _default_profile
-    _compile_messages
+    _ajax_upload_rm
 );
 
 use version; our $VERSION = qv('0.0.1');
@@ -23,6 +22,7 @@ use version; our $VERSION = qv('0.0.1');
 # Module implementation here
 
 Readonly my $FIELD_NAME => 'file';
+Readonly my $MAX_UPLOAD => 512*1024;
 
 sub ajax_upload_httpdocs {
     my $self = shift;
@@ -149,7 +149,7 @@ sub _default_profile {
             data_size=>sub {
                 my ($dfv, $val) = @_;
                 $dfv->set_current_constraint_name('data_size');
-                return $val < 10_000_000;
+                return $val < $MAX_UPLOAD;
             },
             mime_type=>qr{
                 \A
@@ -234,29 +234,56 @@ be written to. It must be writeable. It defaults to '/img/uploads'.
 
 =item dfv_profile
 
-This is L<Data::FormValidator> profile. If it is not set the data will be
-taken on trust.
+This is a L<Data::FormValidator> profile. The hash array that is validated
+consists of the fields described below. A very basic profile is provided by
+default.
 
-=item filename_gen
+=over 4
 
-This is a callback method that will be given in order: the CGI application
-object  and the file name as given by the upload data. It must return the 
-actual name that the file name is to be stored under. If not set the given
-name will be used and any existing files of that name might be overwritten.
-This method can be used also to do additional housekeeping.
+=item I<value> This is contains the actual data contained in the upload. It will
+be untainted. One can of course apply filters that resize the image (assuming
+it is an image) or scrub the HTML (if that is appropriate). 
+
+=item I<file_name> This is the filename given by the browser. By default it will
+be required to be no more than 30 alphanumeric, hyphen or full stop,
+underscore characters; it will be untainted and passed through unmodified. One
+could however specify a filter that completely ignores the filename, generates
+a safe one and does other housekeeping.
+
+=item I<mime_type> This is the mime type provided by L<CGI::Upload> which 
+in turn depends on L<File::MMagic>. By default this is required to be one of
+C<image/jpeg>, C<image/png> and C<image/gif>. 
+
+=item I<file_type> This is the file extension passed by the browser.
+
+=item I<data_size> By default this is required to be less than 512K. 
+
+=back 
+
+Note that this module's handling of file upload and data validation is
+somewhat different from that expected by
+L<Data::FormValidator::Constraints::Upload> and 
+L<Data::FormValidator::Filters::Image>. Those modules work with file handles.
+The L<Data::FormValidator> profiles required  by this module are expected
+to work with the data and meta data.
 
 =item run_mode
 
 This is the name of the run mode that will handle this upload. It defaults to
-'ajax_upload_rm'.
+I<ajax_upload_rm>.
+
+=item mime_magic
+
+This is the optional I<mime_magic> parameter passed to the L<CGI::Upload>
+object.
 
 =back
 
 =head2 _ajax_upload_rm
 
-This forms the implementation of the run mode. It requires a I<file>
-parameter that provides the file data. Optionally it also takes a
-I<validate> parameter that will check the file permissions.
+This private method forms the implementation of the run mode. It requires a
+I<file> CGI query parameter that provides the file data. Optionally it also
+takes a I<validate> parameter that will check the file permissions.
 
 It takes the following actions:
 
@@ -323,11 +350,9 @@ Please report any bugs or feature requests to
 C<bug-cgi-application-plugin-ajaxupload@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
-
 =head1 AUTHOR
 
 Nicholas Bamber  C<< <nicholas@periapt.co.uk> >>
-
 
 =head1 LICENCE AND COPYRIGHT
 
