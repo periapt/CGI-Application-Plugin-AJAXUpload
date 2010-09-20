@@ -23,6 +23,8 @@ use version; our $VERSION = qv('0.0.1');
 
 Readonly my $FIELD_NAME => 'file';
 Readonly my $MAX_UPLOAD => 512*1024;
+Readonly my $PROFILE
+    => CGI::Application::Plugin::AJAXUpload->ajax_upload_default_profile();
 
 sub ajax_upload_httpdocs {
     my $self = shift;
@@ -39,8 +41,7 @@ sub ajax_upload_setup {
     my %args = @_;
 
     my $upload_subdir = $args{upload_subdir} || '/img/uploads';
-    my $dfv_profile = $args{dfv_profile}
-                    || $self->ajax_upload_default_profile();
+    my $dfv_profile = $args{dfv_profile} || $PROFILE;
     my $run_mode = $args{run_mode} || 'ajax_upload_rm';
     my $mime_magic = $args{mime_magic};
 
