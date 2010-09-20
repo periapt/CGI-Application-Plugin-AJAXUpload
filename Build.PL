@@ -21,6 +21,8 @@ my $builder = Module::Build->new(
         'CGI::Application::Plugin::JSON'=>'1.02',
         'CGI::Upload'=>0,
         'Perl6::Slurp'=>0,
+        'Readonly'=>0,
+        'Data::FormValidator'=>0,
     },
     create_makefile_pl => 'traditional',
     create_readme=>1,
