@@ -291,6 +291,7 @@ subtest 'success' => sub{
         },
     );
     isa_ok($app, 'CGI::Application');
+    $app->query->param(validate=>1);
     $app->response_like(
         $CONTENT_RE,
         qr!{"status":"SUCCESS","image_url":"/img/uploads/test.txt"}!xms,
