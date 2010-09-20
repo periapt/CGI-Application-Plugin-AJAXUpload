@@ -122,7 +122,7 @@ sub _ajax_upload_rm {
     $filename = $results->valid('file_name');
 
     return $self->json_body({status => 'No data uploaded'}) if not $value;
-    return $self->json_body({status => 'No file name'}) if not $value;
+    return $self->json_body({status => 'No file name'}) if not $filename;
     
     open $fh, '>', "$full_upload_dir/$filename";
     print {$fh} $value;
