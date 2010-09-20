@@ -82,19 +82,6 @@ sub _ajax_upload_rm {
     my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
     my $query = $self->query;
 
-    if ($query->param('validate')) {
-
-        return $self->json_body({status => 'Document root is not a directory'})
-            if not -d $httpdocs_dir;
-
-        return $self->json_body({status => 'Upload folder is not a directory'})
-            if not -d $full_upload_dir;
-
-        return $self->json_body({status => 'Upload folder is not writeable'})
-            if not -w $full_upload_dir;
-        
-    }
-
     my $upload = CGI::Upload->new({query=>$query});
     if ($mime_magic) {
         $upload->mime_magic($mime_magic);
@@ -121,9 +108,25 @@ sub _ajax_upload_rm {
     $value = $results->valid('value');
     $filename = $results->valid('file_name');
 
-    return $self->json_body({status => 'No data uploaded'}) if not $value;
-    return $self->json_body({status => 'No file name'}) if not $filename;
+    if ($query->param('validate')) {
+
+        return $self->json_body({status => 'Document root is not a directory'})
+            if not -d $httpdocs_dir;
+
+        return $self->json_body({status => 'Upload folder is not a directory'})
+            if not -d $full_upload_dir;
+
+        return $self->json_body({status => 'Upload folder is not writeable'})
+            if not -w $full_upload_dir;
+        
+        return $self->json_body({status => 'No data uploaded'})
+            if not $value;
+
+        return $self->json_body({status => 'No file name'})
+            if not $filename;
     
+    }
+
     open $fh, '>', "$full_upload_dir/$filename";
     print {$fh} $value;
     close $fh;
@@ -296,16 +299,13 @@ profile. It can be called as a class method.
 
 This private method forms the implementation of the run mode. It requires a
 I<file> CGI query parameter that provides the file data. Optionally it also
-takes a I<validate> parameter that will check the file permissions.
+takes a I<validate> parameter that will make other more paranoid checks.
+These checks are only optional because if the system is set up correctly
+they should never fail.
 
 It takes the following actions:
 
 =over 
-
-=item --
-
-If the I<validate> parameter is set the setup will check. If there
-is a problem a status message will be passed back to the user.
 
 =item --
 
@@ -320,7 +320,8 @@ back to the caller.
 
 =item --
 
-The filename will be passed through the file name generator.
+If the I<validate> parameter is set the setup will check. If there
+is a problem a status message will be passed back to the user.
 
 =item --
 
