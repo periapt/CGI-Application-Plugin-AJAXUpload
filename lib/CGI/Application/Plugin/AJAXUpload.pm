@@ -15,6 +15,7 @@ use Data::FormValidator;
     ajax_upload_setup
     ajax_upload_default_profile
     _ajax_upload_rm
+    _ajax_upload_compile_messages
 );
 
 use version; our $VERSION = qv('0.0.1');
@@ -23,8 +24,6 @@ use version; our $VERSION = qv('0.0.1');
 
 Readonly my $FIELD_NAME => 'file';
 Readonly my $MAX_UPLOAD => 512*1024;
-Readonly my $PROFILE
-    => CGI::Application::Plugin::AJAXUpload->ajax_upload_default_profile();
 
 sub ajax_upload_httpdocs {
     my $self = shift;
@@ -41,7 +40,10 @@ sub ajax_upload_setup {
     my %args = @_;
 
     my $upload_subdir = $args{upload_subdir} || '/img/uploads';
-    my $dfv_profile = $args{dfv_profile} || $PROFILE;
+    my $dfv_profile = $args{dfv_profile};
+    if (!$dfv_profile) {
+        $dfv_profile = $self->ajax_upload_default_profile();
+    }
     my $run_mode = $args{run_mode} || 'ajax_upload_rm';
     my $mime_magic = $args{mime_magic};
 
@@ -113,7 +115,8 @@ sub _ajax_upload_rm {
         data_size => length $value,
     };
     my $results = Data::FormValidator->check($data, $dfv_profile);
-    return $self->_compile_messages($results) if ! $results->success;
+    return $self->_ajax_upload_compile_messages($results->msgs)
+        if ! $results->success;
 
     $value = $results->valid('value');
     $filename = $results->valid('file_name');
@@ -131,14 +134,14 @@ sub _ajax_upload_rm {
     });
 }
 
-sub _compile_messages {
+sub _ajax_upload_compile_messages {
     my $self = shift;
     my $msgs = shift;
     my $text = '';
     foreach my $key (keys  %$msgs) {
-        $text .= "[$key] $msgs->{$key}\n";
+        $text .= "$key: $msgs->{$key}\n";
     }
-    return $self=>json_body({status=>$text});
+    return $self->json_body({status=>$text});
 }
 
 sub ajax_upload_default_profile {
@@ -161,6 +164,9 @@ sub ajax_upload_default_profile {
                 )
                 \z
             }xms,
+        },
+        msgs => {
+            format => '%s',
         },
     };
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -w
 use strict;
 use warnings;
 use Carp;
@@ -11,7 +11,7 @@ use Readonly;
 use File::Temp;
 use TestWebApp;
 
-plan tests=> 1+9*TestWebApp::cgi_tests();
+plan tests=> 1+10*TestWebApp::cgi_tests();
 
 Readonly my $CONTENT_RE =>
     qr{
@@ -185,9 +185,35 @@ subtest 'no file parameter' => sub{
     );
 };
 
+my $tcm4 = Test::CGI::Multipart->new;
+$tcm4->set_param(name=>'rm', value=>'ajax_upload_rm');
+$tcm4->upload_file(name=>'file', value=>'This is a test!',file=>'test*blah.txt');
+subtest 'DFV messages' => sub{
+    plan tests => 3;
+    my $tmpdir = valid_dir();
+    my $tmpdir_name = $tmpdir->dirname;
+    my $app = TestWebApp->new(
+        QUERY=>$tcm4->create_cgi(cgi=>$cgi),
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->response_like(
+        $CONTENT_RE,
+        qr/{"status":"file_name: Invalid\\n"}/,
+        'DFV messages'
+    );
+};
 
 subtest 'internal error' => sub{
-    plan tests => 4;
+    plan  tests => 4;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     local $profile->{field_filters} = {
