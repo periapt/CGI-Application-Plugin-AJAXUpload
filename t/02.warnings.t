@@ -11,7 +11,7 @@ use Readonly;
 use File::Temp;
 use TestWebApp;
 
-plan tests=> 1+12*TestWebApp::cgi_tests();
+plan tests=> 1+13*TestWebApp::cgi_tests();
 
 Readonly my $CONTENT_RE =>
     qr{
@@ -351,6 +351,38 @@ subtest 'options' => sub{
         'success'
     );
     is(slurp("$tmpdir_name$upload_subdir/test.txt"), "This is a test!", 'file contents');
+};
+
+subtest 'mime types' => sub{
+    if (-r '/etc/magic') {
+        plan tests => 4;
+    }
+    else {
+        plan skip_all => 'no /etc/magic';
+    }
+    my $tmpdir = valid_dir();
+    my $tmpdir_name = $tmpdir->dirname;
+    my $app = TestWebApp->new(
+        QUERY=>$tcm->create_cgi(cgi=>$cgi),
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile,
+                mime_magic=>'/etc/magic'
+            },
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->query->param(validate=>1);
+    $app->response_like(
+        $CONTENT_RE,
+        qr!{"status":"SUCCESS","image_url":"/img/uploads/test.txt"}!xms,
+        'success'
+    );
+    is(slurp("$tmpdir_name/img/uploads/test.txt"), "This is a test!", 'file contents');
 };
 
 subtest 'success' => sub{
