@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -wT
 use strict;
 use warnings;
 use Carp;
@@ -11,7 +11,7 @@ use Readonly;
 use File::Temp;
 use TestWebApp;
 
-plan tests=> 1+10*TestWebApp::cgi_tests();
+plan tests=> 1+12*TestWebApp::cgi_tests();
 
 Readonly my $CONTENT_RE =>
     qr{
@@ -239,6 +239,85 @@ subtest 'internal error' => sub{
         qr/{"status":"Internal Error"}/,
         'Internal Error',
         qr/Help!/
+    );
+};
+
+my $tcm5 = Test::CGI::Multipart->new;
+$tcm5->set_param(name=>'rm', value=>'ajax_upload_rm');
+$tcm5->upload_file(name=>'file', value=>'',file=>'test.txt');
+subtest 'no data' => sub{
+    plan  tests => 3;
+    my $tmpdir = valid_dir();
+    my $tmpdir_name = $tmpdir->dirname;
+    local $profile->{constraint_methods} = {
+        value => qr/^.{0,100}$/,
+    };
+    local $profile->{required} = [
+        qw(file_name file_type mime_type data_size)
+    ];
+    local $profile->{optional} = [
+        qw(value)
+    ];
+    my $app = TestWebApp->new(
+        QUERY=>$tcm5->create_cgi(cgi=>$cgi),
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->query->param(validate=>1);
+    $app->response_like(
+        $CONTENT_RE,
+        qr/{"status":"No data uploaded"}/,
+        'No data uploaded'
+    );
+};
+
+my $tcm6 = Test::CGI::Multipart->new;
+$tcm6->set_param(name=>'rm', value=>'ajax_upload_rm');
+$tcm6->upload_file(name=>'file', value=>'This is a test!',file=>'');
+subtest 'no filename' => sub{
+    if ($cgi eq 'CGI') {
+        plan skip_all => 'CGI behaves badly here';
+    }
+    else {
+        plan  tests => 3;
+    }
+    my $tmpdir = valid_dir();
+    my $tmpdir_name = $tmpdir->dirname;
+    local $profile->{constraint_methods} = {
+        file_name=> qr/^.{0,100}$/,
+    };
+    local $profile->{required} = [
+        qw(value file_type mime_type data_size)
+    ];
+    local $profile->{optional} = [
+        qw(file_name)
+    ];
+    my $app = TestWebApp->new(
+        QUERY=>$tcm6->create_cgi(cgi=>$cgi),
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            },
+            ajax_spec=> {
+                dfv_profile=>$profile
+            },
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->query->param(validate=>1);
+    $app->response_like(
+        $CONTENT_RE,
+        qr/{"status":"No file handle returned"}/,
+        'No filename'
     );
 };
 

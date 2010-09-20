@@ -122,9 +122,6 @@ sub _ajax_upload_rm {
         return $self->json_body({status => 'No data uploaded'})
             if not $value;
 
-        return $self->json_body({status => 'No file name'})
-            if not $filename;
-    
     }
 
     open $fh, '>', "$full_upload_dir/$filename";
@@ -359,6 +356,12 @@ synopsis.
 This module depends on L<CGI::Upload> for its heavy lifting. Thus, due to
 current limitations of that module, it depends on either L<CGI> or
 L<CGI::Simple>.
+
+There one minor inconsistency between L<CGI> and L<CGI::Simple>. If one
+contrives to permit empty file names and such an upload is sent, then with
+L<CGI::Simple> a suitable error message will be returned but with L<CGI>
+an uncaught exception will be thrown. Since one must override the default
+configuration and replace it with a bad one, this error will not be caught.
 
 Please report any bugs or feature requests to
 C<bug-cgi-application-plugin-ajaxupload@rt.cpan.org>, or through the web interface at
