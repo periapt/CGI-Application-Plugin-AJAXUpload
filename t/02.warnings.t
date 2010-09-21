@@ -347,8 +347,8 @@ subtest 'options' => sub{
     isa_ok($app, 'CGI::Application');
     $app->response_like(
         $CONTENT_RE,
-        qr!{"status":"SUCCESS","image_url":"$upload_subdir/test.txt"}!xms,
-        'success'
+        qr!{"status":"UPLOADED","image_url":"$upload_subdir/test.txt"}!xms,
+        'UPLOADED'
     );
     is(slurp("$tmpdir_name$upload_subdir/test.txt"), "This is a test!", 'file contents');
 };
@@ -379,13 +379,13 @@ subtest 'mime types' => sub{
     $app->query->param(validate=>1);
     $app->response_like(
         $CONTENT_RE,
-        qr!{"status":"SUCCESS","image_url":"/img/uploads/test.txt"}!xms,
-        'success'
+        qr!{"status":"UPLOADED","image_url":"/img/uploads/test.txt"}!xms,
+        'UPLOADED'
     );
     is(slurp("$tmpdir_name/img/uploads/test.txt"), "This is a test!", 'file contents');
 };
 
-subtest 'success' => sub{
+subtest 'UPLOADED' => sub{
     plan tests => 4;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
@@ -405,8 +405,8 @@ subtest 'success' => sub{
     $app->query->param(validate=>1);
     $app->response_like(
         $CONTENT_RE,
-        qr!{"status":"SUCCESS","image_url":"/img/uploads/test.txt"}!xms,
-        'success'
+        qr!{"status":"UPLOADED","image_url":"/img/uploads/test.txt"}!xms,
+        'UPLOADED'
     );
     is(slurp("$tmpdir_name/img/uploads/test.txt"), "This is a test!", 'file contents');
 };

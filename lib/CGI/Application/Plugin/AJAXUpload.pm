@@ -129,7 +129,7 @@ sub _ajax_upload_rm {
     close $fh;
 
     return $self->json_body({
-        status=>'SUCCESS',
+        status=>'UPLOADED',
         image_url=>"$upload_subdir/$filename"
     });
 }
