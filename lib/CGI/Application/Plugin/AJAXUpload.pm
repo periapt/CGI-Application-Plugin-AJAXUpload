@@ -155,7 +155,7 @@ sub ajax_upload_default_profile {
         required=>[qw(value file_name mime_type data_size)],
         untaint_all_constraints=>1,
         constraint_methods => {
-            value=>qr/^.+$/,
+            value=>qr{\A.+\z}xms,
             file_name=>qr/^[\w\.\-\_]{1,30}$/,
             data_size=>sub {
                 my ($dfv, $val) = @_;
@@ -164,7 +164,7 @@ sub ajax_upload_default_profile {
             },
             mime_type=>qr{
                 \A
-                img/
+                image/
                 (?:
                     jpeg|png|gif
                 )
