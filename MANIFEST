@@ -9,6 +9,7 @@ README
 t/00.load.t
 t/01.basic.t
 t/02.warnings.t
+t/03.images.t
 t/changes.t
 t/lib/TestWebApp.pm
 t/manifest.t
