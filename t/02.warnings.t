@@ -1,8 +1,8 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -w
 use strict;
 use warnings;
 use Carp;
-use Test::More;
+use Test::More tests=>12;
 use Test::NoWarnings;
 use Test::CGI::Multipart;
 use lib qw(t/lib);
@@ -11,17 +11,17 @@ use Readonly;
 use File::Temp;
 use TestWebApp;
 
-plan tests=> 1+13*TestWebApp::cgi_tests();
-
 Readonly my $CONTENT_RE =>
     qr{
         \A
-        Encoding:\s+utf-8\s+Content-Type:\s+application/json
+        Encoding:\s+utf-8\s+Content-Type:\s+text/javascript
         (?:;\s+charset=utf-8)?
     }xms;
 
 my $profile = TestWebApp->ajax_upload_default_profile();
 $profile->{constraint_methods}->{mime_type} = qr{^text/plain$};
+$profile->{required} = [qw(value file_name data_size)];
+$profile->{optional} = [qw(mime_type)];
 
 sub nonexistent_dir {
     my $new_dir = File::Temp->newdir;
@@ -36,8 +36,6 @@ sub valid_dir {
     return $tmpdir;
 }
 
-foreach my $cgi (TestWebApp::cgi_tests()) {
-
 my $tcm = Test::CGI::Multipart->new;
 $tcm->set_param(name=>'rm', value=>'ajax_upload_rm');
 $tcm->upload_file(name=>'file', value=>'This is a test!',file=>'test.txt');
@@ -45,7 +43,7 @@ $tcm->upload_file(name=>'file', value=>'This is a test!',file=>'test.txt');
 subtest 'httpdocs_dir not specified' => sub{
     plan tests => 3;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm->create_cgi(),
         PARAMS=>{
             document_root=>sub {},
             ajax_spec=> {
@@ -64,7 +62,7 @@ subtest 'httpdocs_dir not specified' => sub{
 subtest 'httpdocs_dir does not exist' => sub{
     plan tests => 3;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -88,7 +86,7 @@ subtest 'httpdocs_dir not a directory' => sub{
     plan tests => 3;
     my $actually_a_file = File::Temp->new;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -113,7 +111,7 @@ subtest 'upload_subdir does not exist' => sub{
     plan tests => 3;
     my $tmpdir = File::Temp->newdir;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -139,7 +137,7 @@ subtest 'upload_subdir is not writeable' => sub{
     my $tmpdir_name = $tmpdir->dirname;
     chmod 300, "$tmpdir_name/img/uploads";
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -166,7 +164,7 @@ subtest 'no file parameter' => sub{
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
-        QUERY=>$tcm2->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm2->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -180,7 +178,7 @@ subtest 'no file parameter' => sub{
     isa_ok($app, 'CGI::Application');
     $app->response_like(
         $CONTENT_RE,
-        qr/{"status":"No file handle returned"}/,
+        qr/{"status":"No file handle obtained"}/,
         'no file parameter'
     );
 };
@@ -193,7 +191,7 @@ subtest 'DFV messages' => sub{
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
-        QUERY=>$tcm4->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm4->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -207,7 +205,7 @@ subtest 'DFV messages' => sub{
     isa_ok($app, 'CGI::Application');
     $app->response_like(
         $CONTENT_RE,
-        qr/{"status":"file_name: Invalid\\n"}/,
+        qr/{"status":"file_name: Invalid, "}/,
         'DFV messages'
     );
 };
@@ -222,7 +220,7 @@ subtest 'internal error' => sub{
         ],
     };
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -253,13 +251,13 @@ subtest 'no data' => sub{
         value => qr/^.{0,100}$/,
     };
     local $profile->{required} = [
-        qw(file_name file_type mime_type data_size)
+        qw(file_name data_size)
     ];
     local $profile->{optional} = [
-        qw(value)
+        qw(mime_type value)
     ];
     my $app = TestWebApp->new(
-        QUERY=>$tcm5->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm5->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -279,48 +277,6 @@ subtest 'no data' => sub{
     );
 };
 
-my $tcm6 = Test::CGI::Multipart->new;
-$tcm6->set_param(name=>'rm', value=>'ajax_upload_rm');
-$tcm6->upload_file(name=>'file', value=>'This is a test!',file=>'');
-subtest 'no filename' => sub{
-    if ($cgi eq 'CGI') {
-        plan skip_all => 'CGI behaves badly here';
-    }
-    else {
-        plan  tests => 3;
-    }
-    my $tmpdir = valid_dir();
-    my $tmpdir_name = $tmpdir->dirname;
-    local $profile->{constraint_methods} = {
-        file_name=> qr/^.{0,100}$/,
-    };
-    local $profile->{required} = [
-        qw(value file_type mime_type data_size)
-    ];
-    local $profile->{optional} = [
-        qw(file_name)
-    ];
-    my $app = TestWebApp->new(
-        QUERY=>$tcm6->create_cgi(cgi=>$cgi),
-        PARAMS=>{
-            document_root=>sub {
-                my $c = shift;
-                $c->ajax_upload_httpdocs($tmpdir_name);
-            },
-            ajax_spec=> {
-                dfv_profile=>$profile
-            },
-        },
-    );
-    isa_ok($app, 'CGI::Application');
-    $app->query->param(validate=>1);
-    $app->response_like(
-        $CONTENT_RE,
-        qr/{"status":"No file handle returned"}/,
-        'No filename'
-    );
-};
-
 my $tcm3 = Test::CGI::Multipart->new;
 $tcm3->set_param(name=>'rm', value=>'file_upload');
 $tcm3->upload_file(name=>'file', value=>'This is a test!',file=>'test.txt');
@@ -331,7 +287,7 @@ subtest 'options' => sub{
     my $tmpdir_name = $tmpdir->dirname;
     mkdir "$tmpdir_name$upload_subdir";
     my $app = TestWebApp->new(
-        QUERY=>$tcm3->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm3->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -353,44 +309,12 @@ subtest 'options' => sub{
     is(slurp("$tmpdir_name$upload_subdir/test.txt"), "This is a test!", 'file contents');
 };
 
-subtest 'mime types' => sub{
-    if (-r '/etc/magic') {
-        plan tests => 4;
-    }
-    else {
-        plan skip_all => 'no /etc/magic';
-    }
-    my $tmpdir = valid_dir();
-    my $tmpdir_name = $tmpdir->dirname;
-    my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi(cgi=>$cgi),
-        PARAMS=>{
-            document_root=>sub {
-                my $c = shift;
-                $c->ajax_upload_httpdocs($tmpdir_name);
-            },
-            ajax_spec=> {
-                dfv_profile=>$profile,
-                mime_magic=>'/etc/magic'
-            },
-        },
-    );
-    isa_ok($app, 'CGI::Application');
-    $app->query->param(validate=>1);
-    $app->response_like(
-        $CONTENT_RE,
-        qr!{"status":"UPLOADED","image_url":"/img/uploads/test.txt"}!xms,
-        'UPLOADED'
-    );
-    is(slurp("$tmpdir_name/img/uploads/test.txt"), "This is a test!", 'file contents');
-};
-
 subtest 'UPLOADED' => sub{
     plan tests => 4;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
-        QUERY=>$tcm->create_cgi(cgi=>$cgi),
+        QUERY=>$tcm->create_cgi(),
         PARAMS=>{
             document_root=>sub {
                 my $c = shift;
@@ -411,7 +335,6 @@ subtest 'UPLOADED' => sub{
     is(slurp("$tmpdir_name/img/uploads/test.txt"), "This is a test!", 'file contents');
 };
 
-}
 
 
 

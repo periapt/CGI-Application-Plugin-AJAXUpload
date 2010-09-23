@@ -5,7 +5,6 @@ use strict;
 use Carp;
 use base qw(Exporter);
 use vars qw(@EXPORT);
-use CGI::Upload;
 use Perl6::Slurp;
 use Readonly;
 use Data::FormValidator;
@@ -45,21 +44,21 @@ sub ajax_upload_setup {
         $dfv_profile = $self->ajax_upload_default_profile();
     }
     my $run_mode = $args{run_mode} || 'ajax_upload_rm';
-    my $mime_magic = $args{mime_magic};
 
     $self->run_modes(
         $run_mode => sub {
             my $c = shift;
+            $c->header_props(
+                -type=>'text/javascript',
+                -encoding=>'utf-8',
+                -charset=>'utf-8'
+            );
             my $r = eval {
-                $c->_ajax_upload_rm(
-                    $upload_subdir,
-                    $dfv_profile,
-                    $mime_magic,
-                );
+                $c->_ajax_upload_rm($upload_subdir, $dfv_profile);
             };
             if ($@) {
                 carp $@;
-                return $c->json_body({status=> 'Internal Error'});
+                return $c->to_json({status=> 'Internal Error'});
             }
             return $r;
         }
@@ -73,32 +72,39 @@ sub _ajax_upload_rm {
     my $self = shift;
     my $upload_subdir = shift;
     my $dfv_profile = shift;
-    my $mime_magic = shift;
     my $httpdocs_dir = $self->ajax_upload_httpdocs;  
 
-    return $self->json_body({status => 'No document root specified'})
+    return $self->to_json({status => 'No document root specified'})
         if not defined $httpdocs_dir;
 
     my $full_upload_dir = "$httpdocs_dir/$upload_subdir";
     my $query = $self->query;
 
-    my $upload = CGI::Upload->new({query=>$query});
-    if ($mime_magic) {
-        $upload->mime_magic($mime_magic);
-    }
-    my $fh = $upload->file_handle($FIELD_NAME);
-    return $self->json_body({status => 'No file handle returned'})
+    my $lightweight_fh  = $query->upload('file');
+    return $self->to_json({status=>'No file handle obtained'})
+        if !defined $lightweight_fh;
+        
+    my $fh = $lightweight_fh->handle;
+    return $self->to_json({status => 'No file handle promoted'})
         if not $fh;
 
     my $value = slurp $fh;
     close $fh;
-    my $filename =  $upload->file_name($FIELD_NAME);
+    my $filename = $query->param('file');
+    my $info = $query->uploadInfo($filename);
+    return $self->to_json({status => 'No file name obtained'})
+        if not $filename;
+    $filename = "$filename"; # force $filename to be a strict string
 
+    my $mime_type = 'text/plain';
+    if ($info and exists $info->{'Content-Type'}) {
+        $mime_type = $info->{'Content-Type'};
+    }
+    
     my $data = {
         value => $value,
         file_name => $filename,
-        mime_type => $upload->mime_type($FIELD_NAME),
-        file_type => $upload->file_type($FIELD_NAME),
+        mime_type   => $mime_type,
         data_size => length $value,
     };
     my $results = Data::FormValidator->check($data, $dfv_profile);
@@ -110,16 +116,16 @@ sub _ajax_upload_rm {
 
     if ($query->param('validate')) {
 
-        return $self->json_body({status => 'Document root is not a directory'})
+        return $self->to_json({status => 'Document root is not a directory'})
             if not -d $httpdocs_dir;
 
-        return $self->json_body({status => 'Upload folder is not a directory'})
+        return $self->to_json({status => 'Upload folder is not a directory'})
             if not -d $full_upload_dir;
 
-        return $self->json_body({status => 'Upload folder is not writeable'})
+        return $self->to_json({status => 'Upload folder is not writeable'})
             if not -w $full_upload_dir;
         
-        return $self->json_body({status => 'No data uploaded'})
+        return $self->to_json({status => 'No data uploaded'})
             if not $value;
 
     }
@@ -128,7 +134,7 @@ sub _ajax_upload_rm {
     print {$fh} $value;
     close $fh;
 
-    return $self->json_body({
+    return $self->to_json({
         status=>'UPLOADED',
         image_url=>"$upload_subdir/$filename"
     });
@@ -139,14 +145,14 @@ sub _ajax_upload_compile_messages {
     my $msgs = shift;
     my $text = '';
     foreach my $key (keys  %$msgs) {
-        $text .= "$key: $msgs->{$key}\n";
+        $text .= "$key: $msgs->{$key}, ";
     }
-    return $self->json_body({status=>$text});
+    return $self->to_json({status=>$text});
 }
 
 sub ajax_upload_default_profile {
     return {
-        required=>[qw(value file_name mime_type file_type data_size)],
+        required=>[qw(value file_name mime_type data_size)],
         untaint_all_constraints=>1,
         constraint_methods => {
             value=>qr/^.+$/,
@@ -185,7 +191,7 @@ This document describes CGI::Application::Plugin::AJAXUpload version 0.0.1
 =head1 SYNOPSIS
 
     use MyWebApp;
-    use CGI::Application::Plugin::JSON qw(json_body to_json);
+    use CGI::Application::Plugin::JSON qw(to_json);
     use CGI::Application::Plugin::AJAXUpload;
 
     sub setup {
@@ -258,11 +264,7 @@ underscore characters; it will be untainted and passed through unmodified. One
 could however specify a filter that completely ignores the filename, generates
 a safe one and does other housekeeping.
 
-=item I<mime_type> This is the mime type provided by L<CGI::Upload> which 
-in turn depends on L<File::MMagic>. By default this is required to be one of
-C<image/jpeg>, C<image/png> and C<image/gif>. 
-
-=item I<file_type> This is the file extension passed by the browser.
+=item I<mime_type> This is the file extension passed by the browser.
 
 =item I<data_size> By default this is required to be less than 512K. 
 
@@ -279,11 +281,6 @@ to work with the data and meta data.
 
 This is the name of the run mode that will handle this upload. It defaults to
 I<ajax_upload_rm>.
-
-=item mime_magic
-
-This is the optional I<mime_magic> parameter passed to the L<CGI::Upload>
-object.
 
 =back
 
@@ -341,27 +338,17 @@ error.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-CGI::Application::Plugin::AJAXUpload requires no configuration files or environment variables. However the client side code and the URL to run mode dispatching
-is not supplied.
+CGI::Application::Plugin::AJAXUpload requires no configuration files or
+environment variables. However the client side code and the URL to run mode
+dispatching is not supplied.
 
 =head1 DEPENDENCIES
 
-This depends on version 1.02 of L<CGI::Application::Plugin::JSON>. Earlier
-versions might work but they produce different headers which break the tests.
-One must load the JSON plugin in the web application code as shown in the
-synopsis.
+This is using the C<to_json> method from L<CGI::Application::Plugin::JSON>.
+As such that module needs to be exported before this module. Or of course you
+could just define you own.
 
 =head1 BUGS AND LIMITATIONS
-
-This module depends on L<CGI::Upload> for its heavy lifting. Thus, due to
-current limitations of that module, it depends on either L<CGI> or
-L<CGI::Simple>.
-
-There one minor inconsistency between L<CGI> and L<CGI::Simple>. If one
-contrives to permit empty file names and such an upload is sent, then with
-L<CGI::Simple> a suitable error message will be returned but with L<CGI>
-an uncaught exception will be thrown. Since one must override the default
-configuration and replace it with a bad one, this error will not be caught.
 
 Please report any bugs or feature requests to
 C<bug-cgi-application-plugin-ajaxupload@rt.cpan.org>, or through the web interface at

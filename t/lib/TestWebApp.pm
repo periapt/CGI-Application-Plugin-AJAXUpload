@@ -1,6 +1,6 @@
 package TestWebApp;
 use base qw(CGI::Application);
-use CGI::Application::Plugin::JSON qw(json_body to_json);
+use CGI::Application::Plugin::JSON qw(to_json);
 use CGI::Application::Plugin::AJAXUpload;
 use File::Temp;
 use Test::More;
