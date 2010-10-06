@@ -12,6 +12,7 @@ my $builder = Module::Build->new(
         'File::Temp' => 0,
         'Test::NoWarnings' => 0,
         'Test::Warn'=>0,
+        'Test::Image::GD'=>0,
         'CGI::Application::Plugin::JSON'=>'0',
     },
     requires => {
