@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Carp;
-use Test::More tests=>10;
+use Test::More tests=>12;
 use Test::NoWarnings;
 use Test::CGI::Multipart;
 use Test::CGI::Multipart::Gen::Image;
@@ -301,8 +301,60 @@ subtest 'UPLOADED' => sub{
     size_ok("$tmpdir_name/img/uploads/test.jpeg", [300,int(250*300/400)], "size 300x200");
 };
 
+subtest 'png' => sub{
+    plan tests => 5;
+    my $tmpdir = valid_dir();
+    my $tmpdir_name = $tmpdir->dirname;
+    local $profile->{field_filters}->{value} = filter_resize(300,200,'png');
+    my $app = TestWebApp->new(
+        QUERY=>$tcm->create_cgi(),
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            },
+            ajax_spec=>{
+                dfv_profile=>$profile,
+            },
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->query->param(validate=>1);
+    $app->response_like(
+        $CONTENT_RE,
+        qr!{"status":"UPLOADED","image_url":"/img/uploads/test.jpeg"}!xms,
+        'UPLOADED'
+    );
+    is(-s "$tmpdir_name/img/uploads/test.jpeg", 8510, 'file size');
+    size_ok("$tmpdir_name/img/uploads/test.jpeg", [300,int(250*300/400)], "size 300x200");
+};
 
-
-
+subtest 'square' => sub{
+    plan tests => 5;
+    my $tmpdir = valid_dir();
+    my $tmpdir_name = $tmpdir->dirname;
+    local $profile->{field_filters}->{value} = filter_resize(300,50);
+    my $app = TestWebApp->new(
+        QUERY=>$tcm->create_cgi(),
+        PARAMS=>{
+            document_root=>sub {
+                my $c = shift;
+                $c->ajax_upload_httpdocs($tmpdir_name);
+            },
+            ajax_spec=>{
+                dfv_profile=>$profile,
+            },
+        },
+    );
+    isa_ok($app, 'CGI::Application');
+    $app->query->param(validate=>1);
+    $app->response_like(
+        $CONTENT_RE,
+        qr!{"status":"UPLOADED","image_url":"/img/uploads/test.jpeg"}!xms,
+        'UPLOADED'
+    );
+    is(-s "$tmpdir_name/img/uploads/test.jpeg", 1087, 'file size');
+    size_ok("$tmpdir_name/img/uploads/test.jpeg", [80,50], "size 300x50");
+};
 
 

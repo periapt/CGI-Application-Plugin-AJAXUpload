@@ -83,7 +83,7 @@ it takes raw image data and returns raw image data.
 
 =head1 INTERFACE 
 
-=head2 filter_html
+=head2 filter_resize
 
 This returns the subroutine reference that does the work. It takes as arguments
 the I<width> and I<height> in that order. There is an optional third argument
