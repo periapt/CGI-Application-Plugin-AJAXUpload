@@ -87,8 +87,8 @@ it takes raw image data and returns raw image data.
 
 This returns the subroutine reference that does the work. It takes as arguments
 the I<width> and I<height> in that order. There is an optional third argument
-which is the format. This defaults to 'jpeg' but can be anything that works as
-a method on a L<GD::Image> object rturning image data.
+which is the format. This defaults to C<jpeg> but can be anything that works as
+a method on a L<GD::Image> object returning image data.
 
 =head1 ACKNOWLEDGEMENTS
 

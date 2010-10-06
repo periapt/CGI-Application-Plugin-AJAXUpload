@@ -2,6 +2,7 @@ Build.PL
 Changes
 ignore.txt
 lib/CGI/Application/Plugin/AJAXUpload.pm
+lib/Data/FormValidator/Filters/ImgData.pm
 Makefile.PL
 MANIFEST
 META.yml
@@ -10,6 +11,7 @@ t/00.load.t
 t/01.basic.t
 t/02.warnings.t
 t/03.images.t
+t/04-resize.t
 t/changes.t
 t/lib/TestWebApp.pm
 t/manifest.t
