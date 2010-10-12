@@ -12,6 +12,7 @@
 # You can of course change that location. 
 # You will of course need to install vaious modules - not all of which
 # are dependencies of the module.
+# You will also require internet access as the web page loads a lot of YUI code.
 #
 use strict;
 use warnings;

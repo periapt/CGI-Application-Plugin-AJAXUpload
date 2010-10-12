@@ -222,6 +222,8 @@ L<image upload extension|http://allmybrain.com/2007/10/16/an-image-upload-extens
 L<YUI rich text editor|http://developer.yahoo.com/yui/editor>. However as far as
 I can see it could be used as a back end for any L<CGI::Application> website that uploads files behind the scenes using AJAX. In any case this module does NOT
 provide any of that client side code and you must also map the run mode onto the URL used by client-side code.
+That said a working example is provided which could form the basis of
+a rich text editor.  
 
 =head1 INTERFACE 
 
@@ -339,20 +341,25 @@ error.
 =head1 CONFIGURATION AND ENVIRONMENT
 
 CGI::Application::Plugin::AJAXUpload requires no configuration files or
-environment variables. However the client side code and the URL to run mode
-dispatching is not supplied.
+environment variables. However the client side code, the URL to run mode
+dispatching and the general web server setup is not supplied.
 
 =head1 DEPENDENCIES
 
 This is using the C<to_json> method from L<CGI::Application::Plugin::JSON>.
 As such that module needs to be exported before this module. Or of course you
-could just define you own.
+could just define your own.
 
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
 C<bug-cgi-application-plugin-ajaxupload@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
+
+One really odd thing is that the content header of the AJAX reply cannot
+be 'application/json' as one would expect. This module sets it to
+'text/javascript' which works. There is a very short discussion on the
+L<YUI forum|http://yuilibrary.com/forum/viewtopic.php?f=89&t=4743&p=16459&hilit=POST+connection#p16459>.
 
 =head1 AUTHOR
 
@@ -365,6 +372,8 @@ Copyright (c) 2010, Nicholas Bamber C<< <nicholas@periapt.co.uk> >>. All rights 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
 
+The javascript code in the example draws heavily on the code provided
+by AllMyBrain.com. 
 
 =head1 DISCLAIMER OF WARRANTY
 

@@ -18,6 +18,8 @@ if ( $EVAL_ERROR ) {
 Test::Spelling::add_stopwords(qw(   JSON
                                     CPAN
                                     Bamber
+                                    com
+                                    javascript
                                     AllMyBrain
                                     CGI
                                     com's
