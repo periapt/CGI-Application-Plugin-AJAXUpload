@@ -52,7 +52,7 @@ YAHOO.periapt.Editor = function(elementId) {
                        if (! Dom.get(elementId + '_insertimage_upload')) {
                        		var label=document.createElement('label');
                        		label.innerHTML='<strong>Upload:</strong><input type="file" id="' +
-				  					elementId + '_insertimage_upload" name="file" size="10" style="width: 300px" /><input type="hidden" name="validate" value="1"/>';
+				  					elementId + '_insertimage_upload" name="file" size="10" style="width: 300px" /><input type="hidden" name="rm" value="upload"/>';
                        		
                        		var img_elem=Dom.get(elementId + '_insertimage_url');
                        		Dom.getAncestorByTagName(img_elem, 'form').encoding = 'multipart/form-data';
@@ -91,7 +91,7 @@ YAHOO.periapt.Editor = function(elementId) {
                             	YAHOO.util.Connect.setForm ( img_elem.form, true);
                             	var c=YAHOO.util.Connect.asyncRequest(
                                		'POST',
-                               		'/extra_image', {
+                               		'/cgi-bin/template.cgi', {
                                			upload: function(o) {
                                				var resp=o.responseText.replace( /<pre>/i, '').replace ( /<\/pre>/i, '');
                                				var data = YAHOO.lang.JSON.parse(resp);
