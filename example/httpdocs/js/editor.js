@@ -52,7 +52,7 @@ YAHOO.periapt.Editor = function(elementId) {
                        if (! Dom.get(elementId + '_insertimage_upload')) {
                        		var label=document.createElement('label');
                        		label.innerHTML='<strong>Upload:</strong><input type="file" id="' +
-				  					elementId + '_insertimage_upload" name="file" size="10" style="width: 300px" /><input type="hidden" name="rm" value="upload"/>';
+				  					elementId + '_insertimage_upload" name="file" size="10" style="width: 300px" /><input type="hidden" name="rm" value="ajax_upload_rm"/>';
                        		
                        		var img_elem=Dom.get(elementId + '_insertimage_url');
                        		Dom.getAncestorByTagName(img_elem, 'form').encoding = 'multipart/form-data';

@@ -21,12 +21,13 @@
 
 </head>
 <body>
-<form action="/process" method="post">
+<form action="/cgi-bin/template.cgi" method="post">
 			<fieldset>
 				<legend>Article</legend>
    				<label class="form_control"><span class="label">Title: <TMPL_VAR NAME="err_title"></span><input type="text" name="title" id="input_title" maxlength="255" value=""/></label>
    				<label class="form_control yui-skin-sam"><span class="label">Body: <TMPL_VAR NAME="err_body"></span><textarea name="body" id="body" cols="100" rows="10"></textarea></label>
    				<input type="submit" value="Submit changes" class="form_control"/>
+   				<input type="hidden" value="two" name="rm"/>
 				<TMPL_IF NAME="err__"><p class="form_control">Please correct these errors.</p></TMPL_IF>
 			</fieldset>
 </form>    
