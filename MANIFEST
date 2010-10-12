@@ -1,5 +1,10 @@
 Build.PL
 Changes
+example/httpdocs/css/editor.css
+example/httpdocs/js/editor.js
+example/template.cgi
+example/templates/one.tmpl
+example/templates/two.tmpl
 ignore.txt
 lib/CGI/Application/Plugin/AJAXUpload.pm
 lib/Data/FormValidator/Filters/ImgData.pm

@@ -3,10 +3,15 @@
 #
 # Sample application 
 #
-# Just place this file in a CGI enabled part of your website, and the httpdocs
-# contents in the appropriate place, and 
-# load it up in your browser.  The only valid username/password
-# combination is 'test' and '123'.
+# To get this working you need to copy the relevant files to their correct places.
+# This file (template.cgi) to the cgi-bin directory.
+# The templates directory to your preferred template location and change $TEMPLATE_DIR accordingly.
+# The httpdocs directory contents will need to be copied and the value in  
+# ajax_upload_httpdocs updated accordingly. 
+# The directory corresponding to he /img/uploads needs to be writeable.
+# You can of course change that location. 
+# You will of course need to install vaious modules - not all of which
+# are dependencies of the module.
 #
 use strict;
 use warnings;
