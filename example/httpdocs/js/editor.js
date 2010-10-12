@@ -29,7 +29,6 @@ YAHOO.periapt.Editor = function(elementId) {
     	{ group: 'indentlist', label: 'Lists',
        		buttons: [
            		{ type: 'push', label: 'Create an Unordered List', value: 'insertunorderedlist' },
-           		{ type: 'push', label: 'Create an Ordered List', value: 'insertorderedlist' }
 		    ]
     	},
     	{ type: 'separator' },
@@ -40,9 +39,37 @@ YAHOO.periapt.Editor = function(elementId) {
        		]
     	}
 	];
-	/* yuiImgUploader(this, elementId, '/extra_image','file'); */ 
 	
 	this.on('toolbarLoaded', function() {
+		this.toolbar.on ('createlinkClick', function(o) {
+            try {
+                 var Dom=YAHOO.util.Dom;
+                 var labels = Dom.getElementsBy(
+                 		function(o) {
+                			return true;
+                   		},
+                   		'label',
+                   		elementId + '-panel'
+                 );
+                 for(var l = 0; l < labels.length; l++) {
+                 	if (Dom.getElementsBy(
+                   		function(o) {
+                   			if (o.id == elementId+"_createlink_target") {
+                   				return true;
+                   		    }
+                       		return false;
+                      	},
+                       	'input',
+                       	labels[l]
+                     ).length > 0) {
+                     	labels[l].className="hide";
+                     }
+                 }
+            }
+            catch(l) {
+            	alert(l.message);
+            }
+        });
 		this.toolbar.on ('insertimageClick', function(o) {
 			try {
                var imgPanel=new YAHOO.util.Element(elementId + '-panel');
@@ -68,9 +95,6 @@ YAHOO.periapt.Editor = function(elementId) {
                        		for(var l = 0; l < labels.length; l++) {
                        			if (Dom.getElementsBy(
                        				function(o) {
-                       					if (o.id == elementId+"_createlink_target") {
-                       						return true;
-                       					}
                        					if (o.id == elementId+"_insertimage_link") {
                        						return true;
                        					}

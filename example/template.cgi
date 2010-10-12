@@ -90,7 +90,20 @@ Readonly my $HTML_BODY_REGEXP => qr{
                     debug=>1,
                     filters=>['trim'], 
                     field_filters=>{
-                         body=>[filter_html(img_height_default=>$IMAGE_HEIGHT,img_width_default=>$IMAGE_WIDTH)],  
+                         body=>[filter_html(
+                            img_height_default=>$IMAGE_HEIGHT,
+                            img_width_default=>$IMAGE_WIDTH,
+                            tag_hierarchy => {
+                                h3 => '',
+                                p => '',
+                                a => 'p',
+                                img => 'p',
+                                em => 'p',
+                                strong => 'p',
+                                ul => 'p',
+                                li => 'ul',
+                            },
+                         )],  
                     },
                     constraint_methods => {
                         title=>$HTML_STRICT_REGEXP,
