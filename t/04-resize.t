@@ -245,7 +245,7 @@ $tcm3->upload_file(
         type=>'image/jpeg'
 );
 subtest 'options' => sub{
-    plan tests => 5;
+    plan tests => 4;
     my $upload_subdir = '/images';
     my $tmpdir = File::Temp->newdir;
     my $tmpdir_name = $tmpdir->dirname;
@@ -270,12 +270,11 @@ subtest 'options' => sub{
         qr!{"status":"UPLOADED","image_url":"$upload_subdir/test.jpeg"}!xms,
         'UPLOADED'
     );
-    is(-s "$tmpdir_name$upload_subdir/test.jpeg", 2985, 'file size');
     size_ok("$tmpdir_name$upload_subdir/test.jpeg", [300,int(250*300/400)], "size 300x200");
 };
 
 subtest 'UPLOADED' => sub{
-    plan tests => 5;
+    plan tests => 4;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     my $app = TestWebApp->new(
@@ -297,12 +296,11 @@ subtest 'UPLOADED' => sub{
         qr!{"status":"UPLOADED","image_url":"/img/uploads/test.jpeg"}!xms,
         'UPLOADED'
     );
-    is(-s "$tmpdir_name/img/uploads/test.jpeg", 2985, 'file size');
     size_ok("$tmpdir_name/img/uploads/test.jpeg", [300,int(250*300/400)], "size 300x200");
 };
 
 subtest 'png' => sub{
-    plan tests => 5;
+    plan tests => 4;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     local $profile->{field_filters}->{value} = filter_resize(300,200,'png');
@@ -325,12 +323,11 @@ subtest 'png' => sub{
         qr!{"status":"UPLOADED","image_url":"/img/uploads/test.jpeg"}!xms,
         'UPLOADED'
     );
-    is(-s "$tmpdir_name/img/uploads/test.jpeg", 8510, 'file size');
     size_ok("$tmpdir_name/img/uploads/test.jpeg", [300,int(250*300/400)], "size 300x200");
 };
 
 subtest 'square' => sub{
-    plan tests => 5;
+    plan tests => 4;
     my $tmpdir = valid_dir();
     my $tmpdir_name = $tmpdir->dirname;
     local $profile->{field_filters}->{value} = filter_resize(300,50);
@@ -353,7 +350,6 @@ subtest 'square' => sub{
         qr!{"status":"UPLOADED","image_url":"/img/uploads/test.jpeg"}!xms,
         'UPLOADED'
     );
-    is(-s "$tmpdir_name/img/uploads/test.jpeg", 1087, 'file size');
     size_ok("$tmpdir_name/img/uploads/test.jpeg", [80,50], "size 300x50");
 };
 
