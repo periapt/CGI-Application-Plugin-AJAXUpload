@@ -1,5 +1,8 @@
 Revision history for CGI-Application-Plugin-AJAXUpload
 
+v0.0.3  15th October 2010
+       Added missing dependency on Test::CGI::Multipart. 
+
 v0.0.2  13th October 2010
        Removed file size test in image resizing as it was failing
 

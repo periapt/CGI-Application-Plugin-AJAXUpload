@@ -17,7 +17,7 @@ use Data::FormValidator;
     _ajax_upload_compile_messages
 );
 
-use version; our $VERSION = qv('0.0.2');
+use version; our $VERSION = qv('0.0.3');
 
 # Module implementation here
 
@@ -186,7 +186,7 @@ CGI::Application::Plugin::AJAXUpload - Run mode to handle a file upload and retu
 
 =head1 VERSION
 
-This document describes CGI::Application::Plugin::AJAXUpload version 0.0.2
+This document describes CGI::Application::Plugin::AJAXUpload version 0.0.3
 
 =head1 SYNOPSIS
 

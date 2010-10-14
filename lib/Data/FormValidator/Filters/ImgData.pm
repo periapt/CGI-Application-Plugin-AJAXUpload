@@ -10,7 +10,7 @@ use vars qw(@EXPORT);
     filter_resize
 );
 
-use version; our $VERSION = qv('0.0.2');
+use version; our $VERSION = qv('0.0.3');
 
 # Module implementation here
 
@@ -50,7 +50,7 @@ Data::FormValidator::Filters::ImgData - Resize image on the fly
 
 =head1 VERSION
 
-This document describes Data::FormValidator::Filters::ImgData version 0.0.2
+This document describes Data::FormValidator::Filters::ImgData version 0.0.3
 
 =head1 SYNOPSIS
 

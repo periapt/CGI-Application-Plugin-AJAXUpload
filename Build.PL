@@ -13,7 +13,8 @@ my $builder = Module::Build->new(
         'Test::NoWarnings' => 0,
         'Test::Warn'=>0,
         'Test::Image::GD'=>0,
-        'CGI::Application::Plugin::JSON'=>'0',
+        'CGI::Application::Plugin::JSON'=>0,
+        'Test::CGI::Multipart'=>0,
     },
     requires => {
         'version'    => 0,
